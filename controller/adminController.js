@@ -59,6 +59,69 @@ const loginSuperAdmin = async (req, res) => {
   }
 };
 
+//create user in admin panel
+const newUser = async (req, res) => {
+  const { fullName, email, password, wallet } = req.body;  // ✅ Extract wallet field
+  try {
+    // Validation: Check if all required fields are provided
+    if (!fullName || !email || !password || wallet === undefined) {  // Include wallet check
+      return send400(res, {
+        status: false,
+        message: MESSAGE.FIELDS_REQUIRED,
+      });
+    }
+
+    // Check if the user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return send400(res, {
+        status: false,
+        message: MESSAGE.USER_EXISTS,
+      });
+    }
+
+    // Encrypt password
+    const encryptedPassword = await hashPassword.encrypt(password);
+
+    // Create a new user object with wallet included
+    const newUser = new User({
+      fullName,
+      email,
+      password: encryptedPassword,
+      wallet,  // ✅ Save wallet value
+    });
+
+    // Save the user to the database
+    const user = await newUser.save();
+
+    // Generate token
+    const token = jwt.sign(
+      {
+        _id: user._id,
+      },
+      process.env.JWT_SECRET
+    );
+
+    // Send response with token and user data
+    res
+      .header("auth-token", token)
+      .status(201)
+      .json({
+        status: true,
+        token: token,
+        message: `${MESSAGE.USER_REGISTERED}. ${MESSAGE.VERIFY_NUMBER}`,
+        data: user,
+      });
+  } catch (error) {
+    return send400(res, {
+      status: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
 // Create a Super Admin
 const createSuperAdmin = async (req, res) => {
   const { email, fullName, password } = req.body;
@@ -372,6 +435,77 @@ const getAllStocks = async (req, res) => {
   }
 };
 
+//create stock
+
+// Create Stock Controller
+export const createStock = async (req, res) => {
+  try {
+    let {
+      stockName,
+      symbol,
+      totalAmount,
+      stockType,
+      userId,
+      type,
+      quantity,
+      targetPrice,
+      stockPrice,
+      stopLoss,
+      status,
+      netProfitAndLoss,
+      soldDate,
+      buyDate,
+      squareOff,
+      squareOffDate,
+      intervalId,
+      executed,
+      failed,
+      toSquareOffOn,
+      expiryDate,
+      optionType,
+      identifier,
+    } = req.body;
+
+    // ✅ Set default values if null
+    stockType = stockType || "MKT";
+    type = type || "DELIVERY";
+    status = status || "BUY";
+
+    const newStock = new Stock({
+      stockName,
+      symbol,
+      totalAmount,
+      stockType,
+      userId,
+      type,
+      quantity,
+      targetPrice,
+      stockPrice,
+      stopLoss,
+      status,
+      netProfitAndLoss,
+      soldDate,
+      buyDate,
+      squareOff,
+      squareOffDate,
+      intervalId,
+      executed,
+      failed,
+      toSquareOffOn,
+      expiryDate,
+      optionType,
+      identifier,
+    });
+
+    await newStock.save();
+    res.status(201).json({ message: "Stock created successfully!", stock: newStock });
+  } catch (error) {
+    res.status(500).json({ message: "Error creating stock", error: error.message });
+  }
+};
+
+
+
 // Edit Stock
 const editStock = async (req, res) => {
   const { stockId } = req.params;
@@ -604,33 +738,101 @@ const getAllUsers = async (req, res) => {
 //   }
 // };
 
+// const updateUser = async (req, res) => {
+//   const { userId } = req.params;
+//    const {
+//      role,
+//      email,
+//      fullName,
+//      password,
+//      wallet,
+//      overallProfit,
+//      todayProfit,
+//      userPicture,
+//      totalInvested,
+//      otp,
+//      isProfileComplete,
+//      currency,
+//      joinedOn,
+//      profileStatus,
+//      phoneNumber,
+//      isPhoneNumberVerified,
+//    } = req.body; // Extracting data from body
+
+//  console.log("User ID:", userId);
+//  console.log("Headers:", req.headers);
+//  console.log("Received body data:", req.body);
+
+
+//   const updateFields = {};
+//   const allowedFields = [
+//     "role",
+//     "email",
+//     "fullName",
+//     "password",
+//     "wallet",
+//     "overallProfit",
+//     "todayProfit",
+//     "userPicture",
+//     "totalInvested",
+//     "otp",
+//     "isProfileComplete",
+//     "currency",
+//     "joinedOn",
+//     "profileStatus",
+//     "phoneNumber",
+//     "isPhoneNumberVerified",
+//   ];
+
+//   allowedFields.forEach((field) => {
+//     if (
+//       req.body[field] !== undefined &&
+//       req.body[field] !== "" &&
+//       req.body[field] !== "null"
+//     ) {
+//       updateFields[field] = req.body[field] === "null" ? null : req.body[field];
+//     }
+//   });
+
+//   console.log("Received query:", req.body);
+//   console.log("Update Fields:", updateFields);
+
+//   if (!mongoose.Types.ObjectId.isValid(userId)) {
+//     return res.status(400).json({ status: false, message: "Invalid userId." });
+//   }
+
+//   try {
+//     const updatedUser = await User.findByIdAndUpdate(
+//       userId,
+//       { $set: updateFields },
+//       { new: true, runValidators: true }
+//     );
+
+//     if (!updatedUser) {
+//       return res.status(404).json({
+//         status: false,
+//         message: "User not found.",
+//       });
+//     }
+
+//     res.status(200).json({
+//       status: true,
+//       message: "User updated successfully.",
+//       data: updatedUser,
+//     });
+//   } catch (error) {
+//     console.error("Update error:", error);
+//     return res.status(500).json({
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+import bcrypt from "bcryptjs";
+
 const updateUser = async (req, res) => {
   const { userId } = req.params;
-   const {
-     role,
-     email,
-     fullName,
-     password,
-     wallet,
-     overallProfit,
-     todayProfit,
-     userPicture,
-     totalInvested,
-     otp,
-     isProfileComplete,
-     currency,
-     joinedOn,
-     profileStatus,
-     phoneNumber,
-     isPhoneNumberVerified,
-   } = req.body; // Extracting data from body
-
- console.log("User ID:", userId);
- console.log("Headers:", req.headers);
- console.log("Received body data:", req.body);
-
-
-  const updateFields = {};
   const allowedFields = [
     "role",
     "email",
@@ -650,35 +852,32 @@ const updateUser = async (req, res) => {
     "isPhoneNumberVerified",
   ];
 
-  allowedFields.forEach((field) => {
-    if (
-      req.body[field] !== undefined &&
-      req.body[field] !== "" &&
-      req.body[field] !== "null"
-    ) {
-      updateFields[field] = req.body[field] === "null" ? null : req.body[field];
-    }
-  });
-
-  console.log("Received query:", req.body);
-  console.log("Update Fields:", updateFields);
-
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json({ status: false, message: "Invalid userId." });
   }
 
+  const updateFields = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined && req.body[field] !== "" && req.body[field] !== "null") {
+      updateFields[field] = req.body[field] === "null" ? null : req.body[field];
+    }
+  }
+
   try {
+    // Hash password before saving
+    if (updateFields.password) {
+      updateFields.password = await bcrypt.hash(updateFields.password, 10);
+    }
+
+    // Update user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $set: updateFields },
+      { $set: updateFields }, // Ensure the hashed password is already set
       { new: true, runValidators: true }
-    );
+    ).lean(); // Improves performance if we don't need Mongoose document methods
 
     if (!updatedUser) {
-      return res.status(404).json({
-        status: false,
-        message: "User not found.",
-      });
+      return res.status(404).json({ status: false, message: "User not found." });
     }
 
     res.status(200).json({
@@ -690,8 +889,40 @@ const updateUser = async (req, res) => {
     console.error("Update error:", error);
     return res.status(500).json({
       status: false,
-      message: error.message,
+      message: "An error occurred while updating the user.",
     });
+  }
+};
+
+
+const updateStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;  // Extract userId from URL
+    const { active } = req.body;    // Extract active status from request body
+
+    // Validate inputs
+    if (!userId || active === undefined) {
+      return res.status(400).json({ message: "User ID and active status are required" });
+    }
+
+    // Find and update user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { active },  // Update the active status
+      { new: true } // Return the updated user
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: `User ${userId} status updated successfully`,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user status:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -819,7 +1050,10 @@ const adminController = {
   updateIntroDetails,
   uploadIntroImage,
   getAllIntroDetails,
-  deleteIntroDetails
+  deleteIntroDetails,
+  newUser,
+  createStock,
+  updateStatus
 };
 
 export default adminController;

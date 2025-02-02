@@ -21,12 +21,15 @@ const {
   editCommodity,
   deleteCommodity,
   getAllUsers,
+  newUser,
   updateUser,
   deleteUser,
   addIntroDetails,
   updateIntroDetails,
   getAllIntroDetails,
-  deleteIntroDetails
+  deleteIntroDetails,
+  createStock,
+  updateStatus
 } = adminController;
 
 // Route for Super Admin login
@@ -54,6 +57,7 @@ router.delete("/delete-admin/:adminId", deleteAdmin);
 router.get("/dashboard-info", getDashboardInfo);
 
 // Stock Management Routes
+router.post("/stocks", createStock)
 router.get("/stocks", getAllStocks); // Get all stocks
 router.put("/stocks/:stockId", editStock); // Update stock
 router.delete("/stocks/:stockId", deleteStock); // Delete stock
@@ -64,8 +68,10 @@ router.put("/commodities/:commodityId", editCommodity); // Update commodity
 router.delete("/commodities/:commodityId", deleteCommodity); // Delete commodity
 
 // User Management Routes
+router.post("/users", newUser);
 router.get("/users", getAllUsers); // Get all users
 router.put("/users/:userId", updateUser); // Update user
+router.post("/users/:userId/status", updateStatus); // Update user Active
 router.delete("/users/:userId", deleteUser); // Delete user
 
 // App Intro Routes

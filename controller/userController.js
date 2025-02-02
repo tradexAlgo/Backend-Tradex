@@ -301,6 +301,7 @@ const verifyOtp = async (req, res) => {
     });
   }
 };
+
 const getUserProfile = async (req, res) => {
   const userId = req.user._id;
   try {
@@ -323,6 +324,60 @@ const getUserProfile = async (req, res) => {
     });
   }
 };
+
+
+// const login = async (req, res) => {
+//   const { email, password } = req.body;
+
+//   if (!email || !password) {
+//     return send400(res, {
+//       status: false,
+//       message: MESSAGE.FIELDS_REQUIRED,
+//     });
+//   }
+
+//   try {
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       return send404(res, {
+//         status: false,
+//         message: MESSAGE.USER_NOT_FOUND,
+//       });
+//     }
+
+//     const validPass = await hashPassword.compare(password, user.password);
+
+//     if (!validPass) {
+//       return send400(res, {
+//         status: false,
+//         message: MESSAGE.LOGIN_ERROR,
+//       });
+//     }
+
+//     const token = jwt.sign(
+//       {
+//         _id: user._id,
+//       },
+//       process.env.JWT_SECRET
+//     );
+
+//     res.header("auth-token", token).status(200).json({
+//       status: true,
+//       token,
+//       message: MESSAGE.LOGIN_SUCCESS,
+//       data: user,
+//     });
+//   } catch (error) {
+//     return send400(res, {
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+// edit by Atul 
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -340,6 +395,14 @@ const login = async (req, res) => {
       return send404(res, {
         status: false,
         message: MESSAGE.USER_NOT_FOUND,
+      });
+    }
+
+    // Check if the user's account is active
+    if (user.active === false) {
+      return send403(res, {
+        status: false,
+        message: "Your account is inactive. Please contact support.",
       });
     }
 
@@ -372,7 +435,6 @@ const login = async (req, res) => {
     });
   }
 };
-
 
 
 const getIntro = async (req, res) => {

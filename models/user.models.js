@@ -69,6 +69,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    active: {
+      type: Boolean,
+      default: true, // This field is added with default value as true
+    },
   },
   { timestamps: true }
 );
