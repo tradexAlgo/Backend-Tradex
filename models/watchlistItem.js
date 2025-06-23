@@ -1,5 +1,3 @@
-// models/WatchlistItem.js
-
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
@@ -18,6 +16,4 @@ const watchlistItemSchema = new Schema(
   { timestamps: true }
 );
 
-// Export with PascalCase to match import
-const WatchlistItem = mongoose.model("WatchlistItem", watchlistItemSchema);
-export default WatchlistItem;
+export default mongoose.model("watchlistitem", watchlistItemSchema);
