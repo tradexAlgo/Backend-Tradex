@@ -6,9 +6,19 @@ const adminSchema = new Schema(
   {
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "SUB_ADMIN"],
+      enum: ["SUPER_ADMIN", "SUB_ADMIN", "BROKER"],
       required: true,
     },
+    brokerCode: {
+      type: String,
+      unique: true,
+      sparse: true, // only applies to BROKER role
+    },
+    features: {
+      type: [String], // Array of feature strings
+      default: [],
+    },
+
     email: {
       type: String,
       required: true,
@@ -29,22 +39,7 @@ const adminSchema = new Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "admin",
-    },
-    permissions: {
-      canCreateAdmin: {
-        type: Boolean,
-        default: false,
-      },
-      canDeleteAdmin: {
-        type: Boolean,
-        default: false,
-      },
-      canManageUsers: {
-        type: Boolean,
-        default: false,
-      },
-      // Additional permissions can be added here
-    },
+    }
   },
   { timestamps: true }
 );

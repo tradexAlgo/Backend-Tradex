@@ -20,6 +20,14 @@ const {
   squareOffCommodity,
   getNSELatestPrice,
   chain,
+  createWatchlist,
+  deleteWatchlist,
+  getUserWatchlists,
+  addSymbolToWatchlist,
+  removeSymbolFromWatchlist,
+  getSymbolsInWatchlist,
+  getAllSymbolsByUser,
+  exportStocksToExcel
 } = marketController;
 const {
   generateAuthCode,
@@ -29,7 +37,23 @@ const {
   checkApiLimit
 } = fyersController;
 
+router.get("/watchlists/listbyuser", verifyToken, getAllSymbolsByUser);
+
+router.post("/watchlists", verifyToken, createWatchlist);
+router.get("/watchlists", verifyToken, getUserWatchlists);
+router.post("/watchlists/:id", verifyToken, deleteWatchlist);
+
+router.post("/watchlistst/symbol", addSymbolToWatchlist);
+router.post("/watchlists/:watchlistId/symbol/:symbol", verifyToken, removeSymbolFromWatchlist);
+router.get("/watchlists/:watchlistId/items", verifyToken, getSymbolsInWatchlist);
+
+
+
+
+
+
 router.post("/addtowatchlist", verifyToken, addToWatchList);
+router.post("/exportStocksToExcel", verifyToken, exportStocksToExcel);
 router.get("/getwatchlist/:page?", verifyToken, getWatchList);
 
 router.get("/generateAuthCode", generateAuthCode);

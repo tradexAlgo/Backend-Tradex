@@ -377,9 +377,17 @@ const getUserProfile = async (req, res) => {
 // };
 
 // edit by Atul 
+const ensureDefaultWatchlist = async (userId) => {
+  const exists = await watchList.findOne({ userId, name: "My Watchlist" });
+  if (!exists) {
+    await new watchList({ userId, name: "My Watchlist" }).save();
+  }
+};
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
+
 
   if (!email || !password) {
     return send400(res, {
@@ -390,6 +398,10 @@ const login = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
+
+
+    console.log("User found:", user);
+    await ensureDefaultWatchlist(user._id);
 
     if (!user) {
       return send404(res, {
@@ -493,6 +505,28 @@ const depositRequest = async (req, res) => {
   }
 };
 
+export const getUserTransactions = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const transactions = await userPaymentModels
+      .find({ userId })
+      .sort({ createdAt: -1 }); // latest first
+
+    return send200(res, {
+      status: true,
+      message: "Transactions fetched successfully",
+      data: transactions,
+    });
+  } catch (error) {
+    console.error("Transaction fetch error:", error);
+    return send500(res, {
+      status: false,
+      message: "Server error while fetching transactions",
+    });
+  }
+};
+
 // Withdraw Request API
 const withdrawRequest = async (req, res) => {
   const { userId, currency, gateway, amount, upiId } = req.body;
@@ -549,7 +583,7 @@ const acceptRequest = async (req, res) => {
       payment.status = "ACCEPTED";
       await user.save();
       await payment.save();
-      
+
     } else if (action === "REJECT") {
       // await payment.remove();
       payment.status = "REJECTED";
@@ -632,7 +666,8 @@ const userController = {
   acceptRequest,
   getPaymentRequests,
   addOrUpdatePaymentInfo,
-  getPaymentInfo
+  getPaymentInfo,
+  getUserTransactions
 };
 
 export default userController;

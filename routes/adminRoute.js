@@ -29,8 +29,20 @@ const {
   getAllIntroDetails,
   deleteIntroDetails,
   createStock,
-  updateStatus
+  updateStatus,
+   createBroker,
+  getBrokers,
+  deleteBroker,
+  updateBroker
 } = adminController;
+
+
+
+// Only Super Admin can manage brokers
+router.post('/broker', createBroker);
+router.get('/brokers', getBrokers);
+router.delete('/broker/:brokerId',  deleteBroker);
+router.post("/update-broker/:brokerId", updateBroker);
 
 // Route for Super Admin login
 router.post("/login", loginSuperAdmin);

@@ -17,10 +17,157 @@ import checkPrice from "../utils/checkPrice.js";
 import commodityModels from "../models/commodity.models.js";
 import checkPriceStockName from "../utils/checkPriceStockName.js";
 import { getOptionChain, fetchNiftyOptionChain, fetchOptionChain } from "./nse_lib.js";
-
+import WatchlistItem from "../models/WatchlistItem.js";
+import ExcelJS from 'exceljs';
 
 const { send200, send201, send403, send400, send401, send404, send500 } =
   responseHelper;
+
+
+
+const createWatchlist = async (req, res) => {
+  const { name } = req.body;
+  const userId = req.user._id;
+
+  console.log("Creating watchlist for user:", userId, "with name:", name);
+  try {
+    const alreadyExists = await watchList.findOne({ userId, name });
+    if (alreadyExists) {
+      return send400(res, { status: false, message: "Watchlist name already exists" });
+    }
+
+    const newWatchlist = new watchList({ name, userId });
+    const data = await newWatchlist.save();
+
+    return send201(res, { status: true, message: "Watchlist created", data });
+  } catch (err) {
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const deleteWatchlist = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user._id;
+
+  try {
+    const wl = await watchList.findOneAndDelete({ _id: id, userId });
+    if (!wl) {
+      return send404(res, { status: false, message: "Watchlist not found" });
+    }
+
+    await WatchlistItem.deleteMany({ watchlistId: id });
+
+    return send200(res, { status: true, message: "Watchlist deleted" });
+  } catch (err) {
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const getUserWatchlists = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    const lists = await watchList.find({ userId });
+
+    const watchlistsWithCount = await Promise.all(
+      lists.map(async (wl) => {
+        const count = await WatchlistItem.countDocuments({ watchlistId: wl._id });
+        return { ...wl._doc, itemCount: count };
+      })
+    );
+
+    return send200(res, {
+      status: true,
+      message: "User watchlists fetched",
+      data: watchlistsWithCount,
+    });
+  } catch (err) {
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const addSymbolToWatchlist = async (req, res) => {
+  const { watchlistId, symbol } = req.body;
+  console.log("Adding symbol to watchlist:", watchlistId, symbol);
+  try {
+    const exists = await WatchlistItem.findOne({ watchlistId, symbol });
+    if (exists) {
+      return send400(res, { status: false, message: "Symbol already exists in watchlist" });
+    }
+
+    const item = new WatchlistItem({ watchlistId, symbol });
+    const saved = await item.save();
+
+    return send201(res, { status: true, message: "Symbol added", data: saved });
+  } catch (err) {
+    console.log("Error adding symbol to watchlist:", err);
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const removeSymbolFromWatchlist = async (req, res) => {
+  const { watchlistId, symbol } = req.params;
+
+  try {
+    const deleted = await WatchlistItem.findOneAndDelete({ watchlistId, symbol });
+    if (!deleted) {
+      return send404(res, { status: false, message: "Symbol not found in watchlist" });
+    }
+
+    return send200(res, { status: true, message: "Symbol removed from watchlist" });
+  } catch (err) {
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const getSymbolsInWatchlist = async (req, res) => {
+  const { watchlistId } = req.params;
+
+  try {
+    const items = await WatchlistItem.find({ watchlistId });
+
+    return send200(res, {
+      status: true,
+      message: "Watchlist symbols fetched",
+      data: items,
+    });
+  } catch (err) {
+    return send500(res, { status: false, message: err.message });
+  }
+};
+
+const getAllSymbolsByUser = async (req, res) => {
+  console.log("Fetching all symbols for user:", req.user._id);
+  const userId = req.user._id;
+
+  try {
+    // Step 1: Get all watchlists of the user
+    const watchlists = await watchList.find({ userId });
+
+    if (!watchlists.length) {
+      return res.status(404).json({ status: false, message: "No watchlists found" });
+    }
+
+    const watchlistIds = watchlists.map(wl => wl._id);
+
+    // Step 2: Get all watchlist items for those watchlistIds
+    const items = await WatchlistItem.find({ watchlistId: { $in: watchlistIds } });
+
+    // Step 3: Group symbols under each watchlist
+    const groupedResult = watchlists.map(wl => ({
+      watchlistId: wl._id,
+      watchlistName: wl.name,
+      symbols: items
+        .filter(item => item.watchlistId.toString() === wl._id.toString())
+        .map(item => item.symbol),
+    }));
+
+    return res.status(200).json({ status: true, data: groupedResult });
+  } catch (err) {
+    console.error("Error fetching symbols by user:", err);
+    return res.status(500).json({ status: false, message: "Server error" });
+  }
+};
 
 const addToWatchList = async (req, res) => {
   const { symbol } = req.body;
@@ -996,16 +1143,16 @@ const sellCommodity = async (req, res) => {
 
 const squareOff = async (req, res) => {
 
-  const { stockId, stockName, identifier, optionType,latestPriceData } = req.body;
+  const { stockId, stockName, identifier, optionType, latestPriceData } = req.body;
   const userId = req.user._id;
 
   console.log("reqreqreqreqreq so", req.body, latestPriceData);
-// reqreqreqreqreq so {
-//   stockId: '6735c6f0a075adcfd14e1811',
-//   totalAmount: 3251.8500000000004,
-//   stockPrice: 1083.95,
-//   stockName: 'NIFTY'
-// }
+  // reqreqreqreqreq so {
+  //   stockId: '6735c6f0a075adcfd14e1811',
+  //   totalAmount: 3251.8500000000004,
+  //   stockPrice: 1083.95,
+  //   stockName: 'NIFTY'
+  // }
 
 
   try {
@@ -1522,6 +1669,71 @@ export const chain = async (req, res) => {
 //         console.error('Failed to fetch data:', error.message);
 //     }
 // })();
+
+
+
+
+export const exportStocksToExcel = async (req, res) => {
+  const { startDate, endDate } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const query = {
+      userId,
+      buyDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    };
+
+    const stocks = await Stock.find(query).lean();
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Stock Buy History');
+
+    // Add headers
+    worksheet.columns = [
+      { header: 'Stock Name', key: 'stockName', width: 20 },
+      { header: 'Symbol', key: 'symbol', width: 15 },
+      { header: 'Type', key: 'type', width: 12 },
+      { header: 'Stock Type', key: 'stockType', width: 12 },
+      { header: 'Quantity', key: 'quantity', width: 10 },
+      { header: 'Stock Price', key: 'stockPrice', width: 12 },
+      { header: 'Total Amount', key: 'totalAmount', width: 15 },
+      { header: 'Buy Date', key: 'buyDate', width: 20 },
+      { header: 'Status', key: 'status', width: 10 },
+    ];
+
+    // Add data
+    stocks.forEach(stock => {
+      worksheet.addRow({
+        ...stock,
+        buyDate: new Date(stock.buyDate).toLocaleString(),
+      });
+    });
+
+    // Write to buffer and send as download
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=stock_report.xlsx'
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error(error);
+    return send500(res, {
+      status: false,
+      message: 'Failed to export Excel',
+    });
+  }
+};
+
+
 const marketController = {
   addToWatchList,
   getWatchList,
@@ -1539,6 +1751,14 @@ const marketController = {
   buyCommodity,
   getNSELatestPrice,
   chain,
+  createWatchlist,
+  deleteWatchlist,
+  getUserWatchlists,
+  addSymbolToWatchlist,
+  removeSymbolFromWatchlist,
+  getSymbolsInWatchlist,
+  getAllSymbolsByUser,
+  exportStocksToExcel
 };
 
 export default marketController;

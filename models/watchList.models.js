@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const watchListSchema = new Schema(
   {
-    symbol: {
+    name: {
       type: String,
       default: null,
     },
