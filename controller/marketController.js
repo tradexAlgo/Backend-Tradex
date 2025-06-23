@@ -10,7 +10,7 @@ import commodityModels from "../models/commodity.models.js";
 import Stock from "../models/stock.models.js";
 import User from "../models/user.models.js";
 import watchList from "../models/watchList.models.js";
-import WatchlistItem from "../models/WatchlistItem.js";
+import WatchlistItem from "../models/WatchlistItem.models.js";
 import checkPrice from "../utils/checkPrice.js";
 import next5DayDate from "../utils/next5DayDate.js";
 import Queues from "../utils/queues.js";
