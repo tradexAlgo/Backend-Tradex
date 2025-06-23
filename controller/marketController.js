@@ -1,24 +1,20 @@
-import watchList from "../models/watchList.models.js";
-import User from "../models/user.models.js";
-import responseHelper from "../helpers/response.helper.js";
-import { MESSAGE } from "../helpers/message.helper.js";
-import Stock from "../models/stock.models.js";
-import Queues from "../utils/queues.js";
-import { nseData } from "nse-data";
-import { getLTP } from "nse-quotes-api";
-import getStockPrice from "../utils/getStockPrice.js";
-import isBetween915AMAnd320PM from "../middleware/constants.js";
-import next5DayDate from "../utils/next5DayDate.js";
 import { Buffer } from "buffer";
-import { fileURLToPath } from "url";
+import ExcelJS from 'exceljs';
 import { dirname } from "path";
 import protobuf from "protobufjs";
-import checkPrice from "../utils/checkPrice.js";
+import { fileURLToPath } from "url";
+import { MESSAGE } from "../helpers/message.helper.js";
+import responseHelper from "../helpers/response.helper.js";
+import isBetween915AMAnd320PM from "../middleware/constants.js";
 import commodityModels from "../models/commodity.models.js";
-import checkPriceStockName from "../utils/checkPriceStockName.js";
-import { getOptionChain, fetchNiftyOptionChain, fetchOptionChain } from "./nse_lib.js";
+import Stock from "../models/stock.models.js";
+import User from "../models/user.models.js";
+import watchList from "../models/watchList.models.js";
 import WatchlistItem from "../models/WatchlistItem.js";
-import ExcelJS from 'exceljs';
+import checkPrice from "../utils/checkPrice.js";
+import next5DayDate from "../utils/next5DayDate.js";
+import Queues from "../utils/queues.js";
+import { fetchOptionChain } from "./nse_lib.js";
 
 const { send200, send201, send403, send400, send401, send404, send500 } =
   responseHelper;
