@@ -401,10 +401,12 @@ const getUserProfile = async (req, res) => {
 
     // ✅ Find the associated broker (admin) using brokerCode
     let depositUrl = '';
+    let commision = '';
     if (user.brokerCode) {
       const brokerAdmin = await adminModels.findOne({ brokerCode: user.brokerCode });
       if (brokerAdmin) {
         depositUrl = brokerAdmin.depositUrl || '';
+        commision = brokerAdmin.commision || '';
       }
     }
 
@@ -413,7 +415,8 @@ const getUserProfile = async (req, res) => {
       message: MESSAGE.USER_PROFILE,
       data: {
         ...user._doc,
-        depositUrl, // ✅ Inject depositUrl here
+        depositUrl,
+        commision
       },
     });
   } catch (error) {
