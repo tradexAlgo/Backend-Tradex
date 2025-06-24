@@ -15,6 +15,7 @@ import checkPrice from "../utils/checkPrice.js";
 import next5DayDate from "../utils/next5DayDate.js";
 import Queues from "../utils/queues.js";
 import { fetchOptionChain } from "./nse_lib.js";
+import adminModels from "../models/admin.models.js";
 
 const { send200, send201, send403, send400, send401, send404, send500 } =
   responseHelper;
@@ -64,7 +65,7 @@ const getUserWatchlists = async (req, res) => {
 
   try {
     const lists = await watchList.find({ userId });
-    console.log("check the liiii",lists)
+    console.log("check the liiii", lists)
 
     const watchlistsWithCount = await Promise.all(
       lists.map(async (wl) => {
@@ -341,15 +342,55 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+        console.log("The commmmm 1", commissionAmount, userData?.wallet, totalAmount)
+
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId };
         Queues.intradayMKT(checkData);
         return send200(res, {
@@ -375,15 +416,53 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+        console.log("The commmmm 2", commissionAmount, userData?.wallet, totalAmount)
+
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId };
         Queues.intradayLMT(checkData);
         return send200(res, {
@@ -410,15 +489,53 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+        console.log("The commmmm 3", commissionAmount, userData?.wallet, totalAmount)
+
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId, stopLoss };
         Queues.intradaySL(checkData);
         return send200(res, {
@@ -453,15 +570,54 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+
+        console.log("The commmmm 4", commissionAmount, userData?.wallet, totalAmount)
+
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId };
         Queues.deliveryMKT(checkData);
         return send200(res, {
@@ -489,15 +645,54 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+
+        console.log("The commmmm 5", commissionAmount, userData?.wallet, totalAmount)
+
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId };
         Queues.deliveryLMT(checkData);
         return send200(res, {
@@ -526,15 +721,53 @@ const buy = async (req, res) => {
           identifier,
         });
         const data = await newStock.save();
-        await User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $set: {
-              wallet: userData.wallet - totalAmount,
-              totalInvested: userData.totalInvested + totalAmount,
-            },
-          }
-        );
+        // Fetch the user
+        const userData = await User.findById(userId);
+        if (!userData) {
+          return send404(res, { status: false, message: "User not found" });
+        }
+
+        // Initialize commission
+        let commissionAmount = 0;
+
+        // Try to find the broker admin using brokerCode
+        let brokerAdmin = null;
+        if (userData.brokerCode) {
+          brokerAdmin = await adminModels.findOne({ brokerCode: userData?.brokerCode });
+        }
+
+        // If no broker admin found, fallback to super admin (createdBy == null or SUPER_ADMIN role)
+        if (!brokerAdmin) {
+          brokerAdmin = await adminModels.findOne({ role: "SUPER_ADMIN" });
+        }
+
+        // Calculate commission if brokerAdmin has commissionRate
+        if (brokerAdmin?.commision) {
+          const commissionRate = brokerAdmin?.commision; // in %
+          commissionAmount = Number(commissionRate)
+        }
+
+        // Deduct from wallet
+        const newWallet = userData?.wallet - totalAmount - commissionAmount;
+        const newInvested = userData?.totalInvested + totalAmount;
+
+        console.log("The commmmm 6", commissionAmount, userData?.wallet, totalAmount)
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            wallet: newWallet,
+            totalInvested: newInvested,
+          },
+        });
+
+        // await User.findOneAndUpdate(
+        //   { _id: userId },
+        //   {
+        //     $set: {
+        //       wallet: userData.wallet - totalAmount,
+        //       totalInvested: userData.totalInvested + totalAmount,
+        //     },
+        //   }
+        // );
         const checkData = { symbol, id: data._id, userId, stopLoss };
         Queues.deliverySL(checkData);
         return send200(res, {
