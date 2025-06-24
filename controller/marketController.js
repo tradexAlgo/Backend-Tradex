@@ -64,6 +64,7 @@ const getUserWatchlists = async (req, res) => {
 
   try {
     const lists = await watchList.find({ userId });
+    console.log("check the liiii",lists)
 
     const watchlistsWithCount = await Promise.all(
       lists.map(async (wl) => {

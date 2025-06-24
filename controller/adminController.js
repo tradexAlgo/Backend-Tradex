@@ -231,6 +231,44 @@ const getAllAdmins = async (req, res) => {
   }
 };
 
+const updateDepositUrl = async (req, res) => {
+  const { id } = req.params;
+  const { depositUrl } = req.body;
+
+  if (!depositUrl) {
+    return res.status(400).json({
+      status: false,
+      message: "Deposit URL is required",
+    });
+  }
+
+  try {
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      id,
+      { depositUrl },
+      { new: true }
+    );
+
+    if (!updatedAdmin) {
+      return res.status(404).json({
+        status: false,
+        message: "Admin not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Deposit URL updated successfully",
+      data: updatedAdmin,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+};
+
 // Update Admin Status (Activate/Deactivate)
 const updateAdminStatus = async (req, res) => {
   const { adminId } = req.params;
@@ -850,6 +888,7 @@ const updateUser = async (req, res) => {
     "profileStatus",
     "phoneNumber",
     "isPhoneNumberVerified",
+    "withdrawText"
   ];
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -1181,7 +1220,8 @@ const adminController = {
   deleteIntroDetails,
   newUser,
   createStock,
-  updateStatus
+  updateStatus,
+  updateDepositUrl
 };
 
 export default adminController;

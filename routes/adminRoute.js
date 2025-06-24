@@ -33,7 +33,8 @@ const {
    createBroker,
   getBrokers,
   deleteBroker,
-  updateBroker
+  updateBroker,
+  updateDepositUrl
 } = adminController;
 
 
@@ -43,6 +44,10 @@ router.post('/broker', createBroker);
 router.get('/brokers', getBrokers);
 router.delete('/broker/:brokerId',  deleteBroker);
 router.post("/update-broker/:brokerId", updateBroker);
+
+
+router.post('/deposit-url/:id', updateDepositUrl);
+
 
 // Route for Super Admin login
 router.post("/login", loginSuperAdmin);

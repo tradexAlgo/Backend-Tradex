@@ -13,10 +13,12 @@ import introModels from "../models/intro.models.js";
 import userPaymentModels from "../models/userPayment.models.js";
 import paymentInfoModels from "../models/paymentInfo.models.js";
 import oAuth2Client from "../services/oauthClient.js";
+import WatchlistItemModels from "../models/WatchlistItem.models.js";
+import adminModels from "../models/admin.models.js";
 const { send200, send403, send400, send401, send404, send500 } = responseHelper;
 
 const register = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, brokerCode } = req.body;
   try {
     if (!fullName || !email || !password) {
       return send400(res, {
@@ -36,6 +38,7 @@ const register = async (req, res) => {
       fullName,
       email,
       password: encryptedPassword,
+      brokerCode
     });
     const user = await newUser.save();
     const token = jwt.sign(
@@ -302,28 +305,28 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-const getUserProfile = async (req, res) => {
-  const userId = req.user._id;
-  try {
-    const user = await User.findOne({ _id: userId });
-    if (!user) {
-      return send404(res, {
-        status: false,
-        message: MESSAGE.USER_NOT_FOUND,
-      });
-    }
-    return send200(res, {
-      status: true,
-      message: MESSAGE.USER_PROFILE,
-      data: user,
-    });
-  } catch (error) {
-    return send400(res, {
-      status: false,
-      message: error.message,
-    });
-  }
-};
+// const getUserProfile = async (req, res) => {
+//   const userId = req.user._id;
+//   try {
+//     const user = await User.findOne({ _id: userId });
+//     if (!user) {
+//       return send404(res, {
+//         status: false,
+//         message: MESSAGE.USER_NOT_FOUND,
+//       });
+//     }
+//     return send200(res, {
+//       status: true,
+//       message: MESSAGE.USER_PROFILE,
+//       data: user,
+//     });
+//   } catch (error) {
+//     return send400(res, {
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
 
 
 // const login = async (req, res) => {
@@ -377,12 +380,90 @@ const getUserProfile = async (req, res) => {
 // };
 
 // edit by Atul 
-const ensureDefaultWatchlist = async (userId) => {
-  const exists = await watchList.findOne({ userId, name: "My Watchlist" });
-  if (!exists) {
-    await new watchList({ userId, name: "My Watchlist" }).save();
+// const ensureDefaultWatchlist = async (userId) => {
+//   const exists = await watchList.findOne({ userId, name: "My Watchlist" });
+//   if (!exists) {
+//     await new watchList({ userId, name: "My Watchlist" }).save();
+//   }
+// };
+
+const getUserProfile = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return send404(res, {
+        status: false,
+        message: MESSAGE.USER_NOT_FOUND,
+      });
+    }
+
+    // ✅ Find the associated broker (admin) using brokerCode
+    let depositUrl = '';
+    if (user.brokerCode) {
+      const brokerAdmin = await adminModels.findOne({ brokerCode: user.brokerCode });
+      if (brokerAdmin) {
+        depositUrl = brokerAdmin.depositUrl || '';
+      }
+    }
+
+    return send200(res, {
+      status: true,
+      message: MESSAGE.USER_PROFILE,
+      data: {
+        ...user._doc,
+        depositUrl, // ✅ Inject depositUrl here
+      },
+    });
+  } catch (error) {
+    return send400(res, {
+      status: false,
+      message: error.message,
+    });
   }
 };
+
+const ensureDefaultWatchlist = async (userId) => {
+  console.log("Check the user ID", userId);
+
+  // Create "My Watchlist" if missing
+  await watchList.findOneAndUpdate(
+    { userId, name: "My Watchlist" },
+    {},
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  // Create "MCX" if missing
+  await watchList.findOneAndUpdate(
+    { userId, name: "MCX" },
+    {},
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  // Create "OPTION CHAIN" and add default symbol
+  const optionChain = await watchList.findOneAndUpdate(
+    { userId, name: "OPTION CHAIN" },
+    {},
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  // ✅ FIXED: Use WatchlistItem model to check/add symbols
+  const alreadyAdded = await WatchlistItemModels.findOne({
+    watchlistId: optionChain._id,
+    symbol: "^NSEI",
+  });
+
+  if (!alreadyAdded) {
+    await new WatchlistItemModels({
+      watchlistId: optionChain._id,
+      symbol: "^NSEI",
+    }).save();
+  }
+};
+
+
+
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -397,10 +478,13 @@ const login = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      email: { $regex: `^${email}$`, $options: 'i' }
+    });
 
 
-    console.log("User found:", user);
+
+    console.log("User found:", user?._id);
     await ensureDefaultWatchlist(user._id);
 
     if (!user) {
@@ -480,10 +564,11 @@ const getIntro = async (req, res) => {
 
 // Deposit Request API
 const depositRequest = async (req, res) => {
-  const { userId, amount, transactionId, currency, clientUp } = req.body;
-
+  const { userId, amount, currency, clientUp } = req.body;
+  console.log("sdfs909s", userId, amount, currency, clientUp)
   try {
     const user = await User.findById(userId);
+    console.log("is iuuuser", user)
     if (!user) {
       return send404(res, { status: false, message: "User not found" });
     }
@@ -492,15 +577,16 @@ const depositRequest = async (req, res) => {
       userId,
       type: "DEPOSIT",
       amount,
-      transactionId,
       currency,
       clientUp,
     });
+
 
     await newDeposit.save();
 
     return send200(res, { status: true, message: "Deposit request submitted" });
   } catch (error) {
+    console.log("chekc", error)
     return send500(res, { status: false, message: error.message });
   }
 };

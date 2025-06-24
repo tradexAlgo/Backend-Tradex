@@ -12,6 +12,10 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    brokerCode: {
+      type: String,
+      default: '',
+    },
     fullName: {
       type: String,
       default: null,
@@ -35,6 +39,10 @@ const userSchema = new Schema(
     userPicture: {
       type: String,
       default: "https://www.w3schools.com/w3images/avatar5.png",
+    },
+    withdrawText: {
+      type: String,
+      default: "",
     },
     totalInvested: {
       type: Number,

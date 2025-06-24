@@ -32,6 +32,10 @@ const adminSchema = new Schema(
       type: String,
       required: true,
     },
+    depositUrl: {
+      type: String,
+      default: '',
+    },
     isActive: {
       type: Boolean,
       default: true,
