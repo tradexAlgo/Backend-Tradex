@@ -36,6 +36,10 @@ const adminSchema = new Schema(
       type: String,
       default: '',
     },
+    commision: {
+      type: String,
+      default: '',
+    },
     isActive: {
       type: Boolean,
       default: true,

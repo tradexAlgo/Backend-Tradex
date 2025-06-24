@@ -4,6 +4,7 @@ import fs from "fs";
 import adminController from "../controller/adminController.js";
 import Busboy from 'busboy';
 import { dirname } from 'path';
+import verifyToken from "../utils/verifyToken.js";
 const router = express.Router();
 const {
   loginSuperAdmin,
@@ -71,7 +72,7 @@ router.put("/reset-password/:adminId", resetAdminPassword);
 router.delete("/delete-admin/:adminId", deleteAdmin);
 
 // Route for getting dashboard information (Super Admin access only)
-router.get("/dashboard-info", getDashboardInfo);
+router.get("/dashboard-info",verifyToken, getDashboardInfo);
 
 // Stock Management Routes
 router.post("/stocks", createStock)

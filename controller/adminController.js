@@ -233,19 +233,19 @@ const getAllAdmins = async (req, res) => {
 
 const updateDepositUrl = async (req, res) => {
   const { id } = req.params;
-  const { depositUrl } = req.body;
+  const { depositUrl, commision } = req.body;
 
-  if (!depositUrl) {
-    return res.status(400).json({
-      status: false,
-      message: "Deposit URL is required",
-    });
-  }
+  // if (!depositUrl) {
+  //   return res.status(400).json({
+  //     status: false,
+  //     message: "Deposit URL is required",
+  //   });
+  // }
 
   try {
     const updatedAdmin = await Admin.findByIdAndUpdate(
       id,
-      { depositUrl },
+      { depositUrl, commision },
       { new: true }
     );
 
@@ -376,61 +376,171 @@ const deleteAdmin = async (req, res) => {
 };
 
 // Get Dashboard Info
+// const getDashboardInfo = async (req, res) => {
+
+//   console.log("admin id",req?.user?._id)
+//   try {
+//     // Get top 10 stocks by totalAmount
+//     const topStocks = await Stock.find()
+//       .sort({ totalAmount: -1 })
+//       .limit(10)
+//       .select('stockName symbol totalAmount');
+
+//     // Get latest 5 users by joinedOn date
+//     const latestUsers = await User.find()
+//       .sort({ joinedOn: -1 })
+//       .limit(5)
+//       .select('fullName email joinedOn userPicture');
+
+//     // Get total number of stocks and commodities
+//     const totalStocks = await Stock.countDocuments();
+//     const totalCommodities = await Commodity.countDocuments();
+//     const totalUsers = await User.countDocuments();
+
+//     // Get total invested amount from all users
+//     const totalInvested = await User.aggregate([
+//       { $group: { _id: null, total: { $sum: "$totalInvested" } } }
+//     ]);
+
+//     // Get total profit and loss from all stocks
+//     const totalStockProfitLoss = await Stock.aggregate([
+//       { $group: { _id: null, totalProfitLoss: { $sum: "$netProfitAndLoss" } } }
+//     ]);
+
+//     // Get last updated stock
+//     const lastUpdatedStock = await Stock.findOne()
+//       .sort({ updatedAt: -1 })
+//       .select('stockName symbol updatedAt');
+
+//     // Get total value of all stocks
+//     const totalStockValue = await Stock.aggregate([
+//       { $group: { _id: null, totalValue: { $sum: { $multiply: ["$quantity", "$stockPrice"] } } } }
+//     ]);
+
+//     // Get total value of all commodities
+//     const totalCommodityValue = await Commodity.aggregate([
+//       { $group: { _id: null, totalValue: { $sum: { $multiply: ["$quantity", "$commodityPrice"] } } } }
+//     ]);
+
+//     // Get user with highest wallet
+//     const userWithHighestWallet = await User.findOne()
+//       .sort({ wallet: -1 })
+//       .select('fullName email wallet');
+
+//     // Get number of stocks by status
+//     const stocksByStatus = await Stock.aggregate([
+//       { $group: { _id: "$status", count: { $sum: 1 } } }
+//     ]);
+
+//     res.status(200).json({
+//       status: true,
+//       message: MESSAGE.DASHBOARD_INFO_FETCHED,
+//       data: {
+//         topStocks,
+//         latestUsers,
+//         totalStocks,
+//         totalCommodities,
+//         totalUsers,
+//         totalInvested: totalInvested[0]?.total || 0,
+//         totalStockProfitLoss: totalStockProfitLoss[0]?.totalProfitLoss || 0,
+//         lastUpdatedStock,
+//         totalStockValue: totalStockValue[0]?.totalValue || 0,
+//         totalCommodityValue: totalCommodityValue[0]?.totalValue || 0,
+//         userWithHighestWallet,
+//         stocksByStatus
+//       }
+//     });
+//   } catch (error) {
+//     return send500(res, {
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 const getDashboardInfo = async (req, res) => {
   try {
+    const adminId = req?.user?._id;
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) {
+      return send404(res, {
+        status: false,
+        message: "Admin not found",
+      });
+    }
+
+    let userFilter = {};
+    let stockFilter = {};
+    let commodityFilter = {};
+
+    if (admin.role === 'BROKER' && admin.brokerCode) {
+      // Apply filtering for brokers
+      userFilter = { brokerCode: admin.brokerCode };
+      stockFilter = { brokerCode: admin.brokerCode };
+      commodityFilter = { brokerCode: admin.brokerCode };
+    }
+
     // Get top 10 stocks by totalAmount
-    const topStocks = await Stock.find()
+    const topStocks = await Stock.find(stockFilter)
       .sort({ totalAmount: -1 })
       .limit(10)
       .select('stockName symbol totalAmount');
 
-    // Get latest 5 users by joinedOn date
-    const latestUsers = await User.find()
+    // Get latest 5 users
+    const latestUsers = await User.find(userFilter)
       .sort({ joinedOn: -1 })
       .limit(5)
       .select('fullName email joinedOn userPicture');
 
-    // Get total number of stocks and commodities
-    const totalStocks = await Stock.countDocuments();
-    const totalCommodities = await Commodity.countDocuments();
-    const totalUsers = await User.countDocuments();
+    const totalStocks = await Stock.countDocuments(stockFilter);
+    const totalCommodities = await Commodity.countDocuments(commodityFilter);
+    const totalUsers = await User.countDocuments(userFilter);
 
-    // Get total invested amount from all users
     const totalInvested = await User.aggregate([
+      { $match: userFilter },
       { $group: { _id: null, total: { $sum: "$totalInvested" } } }
     ]);
 
-    // Get total profit and loss from all stocks
     const totalStockProfitLoss = await Stock.aggregate([
+      { $match: stockFilter },
       { $group: { _id: null, totalProfitLoss: { $sum: "$netProfitAndLoss" } } }
     ]);
 
-    // Get last updated stock
-    const lastUpdatedStock = await Stock.findOne()
+    const lastUpdatedStock = await Stock.findOne(stockFilter)
       .sort({ updatedAt: -1 })
       .select('stockName symbol updatedAt');
 
-    // Get total value of all stocks
     const totalStockValue = await Stock.aggregate([
-      { $group: { _id: null, totalValue: { $sum: { $multiply: ["$quantity", "$stockPrice"] } } } }
+      { $match: stockFilter },
+      {
+        $group: {
+          _id: null,
+          totalValue: { $sum: { $multiply: ["$quantity", "$stockPrice"] } },
+        },
+      },
     ]);
 
-    // Get total value of all commodities
     const totalCommodityValue = await Commodity.aggregate([
-      { $group: { _id: null, totalValue: { $sum: { $multiply: ["$quantity", "$commodityPrice"] } } } }
+      { $match: commodityFilter },
+      {
+        $group: {
+          _id: null,
+          totalValue: { $sum: { $multiply: ["$quantity", "$commodityPrice"] } },
+        },
+      },
     ]);
 
-    // Get user with highest wallet
-    const userWithHighestWallet = await User.findOne()
+    const userWithHighestWallet = await User.findOne(userFilter)
       .sort({ wallet: -1 })
       .select('fullName email wallet');
 
-    // Get number of stocks by status
     const stocksByStatus = await Stock.aggregate([
+      { $match: stockFilter },
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       status: true,
       message: MESSAGE.DASHBOARD_INFO_FETCHED,
       data: {
@@ -445,8 +555,9 @@ const getDashboardInfo = async (req, res) => {
         totalStockValue: totalStockValue[0]?.totalValue || 0,
         totalCommodityValue: totalCommodityValue[0]?.totalValue || 0,
         userWithHighestWallet,
-        stocksByStatus
-      }
+        stocksByStatus,
+        admin
+      },
     });
   } catch (error) {
     return send500(res, {
@@ -1052,11 +1163,11 @@ export const uploadIntroImage = (req, res) => {
   console.log('Request Headers:', req.headers);
   console.log('Request Body:', req.body);
   console.log('File:', req.file);
-  
+
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-  
+
   const fileUrl = `/uploads/${req.file.filename}`;
   res.status(200).json({
     message: 'File uploaded successfully',
@@ -1080,7 +1191,7 @@ export const createBroker = async (req, res) => {
       role: "BROKER",
       fullName,
       email,
-      password, 
+      password,
       brokerCode,
       features,
     });
