@@ -454,13 +454,24 @@ const ensureDefaultWatchlist = async (userId) => {
   // ✅ FIXED: Use WatchlistItem model to check/add symbols
   const alreadyAdded = await WatchlistItemModels.findOne({
     watchlistId: optionChain._id,
-    symbol: "^NSEI",
+    symbol: "^NSEBANK",
   });
 
   if (!alreadyAdded) {
     await new WatchlistItemModels({
       watchlistId: optionChain._id,
-      symbol: "^NSEI",
+      symbol: "^NSEBANK",
+    }).save();
+  }
+   const alreadyAdded1 = await WatchlistItemModels.findOne({
+    watchlistId: optionChain._id,
+    symbol: "^BSESN",
+  });
+
+  if (!alreadyAdded1) {
+    await new WatchlistItemModels({
+      watchlistId: optionChain._id,
+      symbol: "^BSESN",
     }).save();
   }
 };
