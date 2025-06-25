@@ -52,7 +52,23 @@ const userSchema = new Schema(
       type: Number,
       default: null,
     },
-    isProfileComplete: {
+    dob: {
+      type: String,
+      default: "",
+    },
+    gender: {
+      type: String,
+      default: "",
+    },
+    incomeRange: {
+      type: String,
+      default: "",
+    },
+    panNumber: {
+      type: String,
+      default: "",
+    },
+    ProfileComplete: {
       type: Boolean,
       default: false,
     },

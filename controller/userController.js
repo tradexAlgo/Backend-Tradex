@@ -18,7 +18,7 @@ import adminModels from "../models/admin.models.js";
 const { send200, send403, send400, send401, send404, send500 } = responseHelper;
 
 const register = async (req, res) => {
-  const { fullName, email, password, brokerCode } = req.body;
+  const { fullName, email, password, brokerCode,dob,incomeRange,gender,panNumber } = req.body;
   try {
     if (!fullName || !email || !password) {
       return send400(res, {
@@ -38,7 +38,11 @@ const register = async (req, res) => {
       fullName,
       email,
       password: encryptedPassword,
-      brokerCode
+      brokerCode,
+      dob,
+      incomeRange,
+      gender,
+      panNumber
     });
     const user = await newUser.save();
     const token = jwt.sign(

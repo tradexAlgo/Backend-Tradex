@@ -60,27 +60,61 @@ const deleteWatchlist = async (req, res) => {
   }
 };
 
+// const getUserWatchlists = async (req, res) => {
+//   const userId = req.user._id;
+
+//   try {
+//     const lists = await watchList.find({ userId });
+//     console.log("check the liiii", lists)
+
+//     const watchlistsWithCount = await Promise.all(
+//       lists.map(async (wl) => {
+//         const count = await WatchlistItem.countDocuments({ watchlistId: wl._id });
+//         return { ...wl._doc, itemCount: count };
+//       })
+//     );
+
+//     return send200(res, {
+//       status: true,
+//       message: "User watchlists fetched",
+//       data: watchlistsWithCount,
+//     });
+//   } catch (err) {
+//     return send500(res, { status: false, message: err.message });
+//   }
+// };
+
 const getUserWatchlists = async (req, res) => {
   const userId = req.user._id;
 
   try {
-    const lists = await watchList.find({ userId });
-    console.log("check the liiii", lists)
+    // Get all non-empty watchlists for the user
+    const lists = await watchList.find({
+      userId,
+      name: { $nin: [null, ""] }, // Exclude null and empty names
+    });
 
+    // Count items in each watchlist
     const watchlistsWithCount = await Promise.all(
       lists.map(async (wl) => {
         const count = await WatchlistItem.countDocuments({ watchlistId: wl._id });
-        return { ...wl._doc, itemCount: count };
+        return {
+          ...wl.toObject(),
+          itemCount: count,
+        };
       })
     );
 
     return send200(res, {
       status: true,
-      message: "User watchlists fetched",
+      message: "User watchlists fetched successfully",
       data: watchlistsWithCount,
     });
   } catch (err) {
-    return send500(res, { status: false, message: err.message });
+    return send500(res, {
+      status: false,
+      message: err.message || "Failed to fetch watchlists",
+    });
   }
 };
 
@@ -246,6 +280,9 @@ const getWatchList = async (req, res) => {
     });
   }
 };
+
+
+
 
 const removeWatchListItem = async (req, res) => {
   const userId = req.user._id;
