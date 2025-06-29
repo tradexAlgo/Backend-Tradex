@@ -27,7 +27,8 @@ const {
   removeSymbolFromWatchlist,
   getSymbolsInWatchlist,
   getAllSymbolsByUser,
-  exportStocksToExcel
+  exportStocksToExcel,
+  getOptionChain
 } = marketController;
 const {
   generateAuthCode,
@@ -36,6 +37,9 @@ const {
   getQuotes,
   checkApiLimit
 } = fyersController;
+
+
+router.get('/chain', getOptionChain);
 
 router.get("/watchlists/listbyuser", verifyToken, getAllSymbolsByUser);
 

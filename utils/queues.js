@@ -25,7 +25,7 @@ const intradayWithLMT = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         throw new Error("Stock or user not found");
       }
 
@@ -38,7 +38,7 @@ const intradayWithLMT = async (data) => {
           await Stock.findByIdAndUpdate(id, { $set: { failed: true } });
           await User.findByIdAndUpdate(userId, { $inc: { wallet: totalAmount } });
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           throw new Error("Match not found, db updated");
         }
         if (matched && !isValidTime) {
@@ -60,7 +60,7 @@ const intradayWithLMT = async (data) => {
             },
           });
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           throw new Error("Position squared off, db updated");
         }
         if (Math.floor(price) === Math.floor(stockData.stockPrice) && !matched) {
@@ -79,7 +79,7 @@ const intradayWithLMT = async (data) => {
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
       }
     }, int);
@@ -106,7 +106,7 @@ const handleStockOperation = async (data, strategy) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         throw new Error("Stock or user not found");
       }
 
@@ -124,17 +124,17 @@ const handleStockOperation = async (data, strategy) => {
         });
         if (result) {
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           return result;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         return "Already squared off";
       }
     } catch (error) {
       clearInterval(interval);
-      delete activeProcesses[stockData.intervalId];
+      delete activeProcesses[stockData?.intervalId];
       console.error(error);
     }
   }, strategy.interval);
@@ -154,7 +154,7 @@ const intradayWithMKT = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -183,13 +183,13 @@ const intradayWithMKT = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Match not found, db updated");
           return;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -219,7 +219,7 @@ const intradayWithSL = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -242,7 +242,7 @@ const intradayWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Match not found, db updated");
           return;
         }
@@ -263,7 +263,7 @@ const intradayWithSL = async (data) => {
             },
           });
           // clearInterval(interval);
-          // delete activeProcesses[stockData.intervalId];
+          // delete activeProcesses[stockData?.intervalId];
           resolve("Match found, db updated");
           return;
         }
@@ -289,7 +289,7 @@ const intradayWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
@@ -315,13 +315,13 @@ const intradayWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -351,7 +351,7 @@ const deliveryWithSL = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -374,7 +374,7 @@ const deliveryWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Match not found, db updated");
           return;
         }
@@ -395,7 +395,7 @@ const deliveryWithSL = async (data) => {
             },
           });
           // clearInterval(interval);
-          // delete activeProcesses[stockData.intervalId];
+          // delete activeProcesses[stockData?.intervalId];
           resolve("Match found, db updated");
           return;
         }
@@ -421,7 +421,7 @@ const deliveryWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
@@ -447,13 +447,13 @@ const deliveryWithSL = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -510,13 +510,13 @@ const deliveryWithMKT = async (data) => {
             }
           );
           clearInterval(interval); // Clear the interval here
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Match not found, db updated");
           return;
         }
       } else {
         clearInterval(interval); // Clear the interval here
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -546,7 +546,7 @@ const deliveryWithLMT = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -569,7 +569,7 @@ const deliveryWithLMT = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Match not found, db updated");
           return;
         }
@@ -595,7 +595,7 @@ const deliveryWithLMT = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
@@ -615,13 +615,13 @@ const deliveryWithLMT = async (data) => {
             },
           });
           // clearInterval(interval);
-          // delete activeProcesses[stockData.intervalId];
+          // delete activeProcesses[stockData?.intervalId];
           resolve("Match found, db updated");
           return;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -726,7 +726,7 @@ const generalWithMKT = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -754,12 +754,12 @@ const generalWithMKT = async (data) => {
           }
         );
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Match not found, db updated");
         return;
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }
@@ -788,7 +788,7 @@ const generalWithLMT = async (data) => {
       const stockData = await Stock.findById(id);
       if (!userData || !stockData) {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Stock not found");
         return;
       }
@@ -833,13 +833,13 @@ const generalWithLMT = async (data) => {
             }
           );
           clearInterval(interval);
-          delete activeProcesses[stockData.intervalId];
+          delete activeProcesses[stockData?.intervalId];
           resolve("Position squared off, db updated");
           return;
         }
       } else {
         clearInterval(interval);
-        delete activeProcesses[stockData.intervalId];
+        delete activeProcesses[stockData?.intervalId];
         resolve("Already squared off");
         return;
       }

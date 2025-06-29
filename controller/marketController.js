@@ -1650,7 +1650,8 @@ const squareOffCommodity = async (req, res) => {
     const userData = await User.findOne({ _id: userId });
 
     const newPrice = latestPrice * commodityData.quantity;
-    const PL = newPrice - totalAmount;
+    const PL = newPrice - stockPrice;
+
 
     await commodityModels.findOneAndUpdate(
       { _id: stockId },
@@ -2001,6 +2002,92 @@ export const exportStocksToExcel = async (req, res) => {
 };
 
 
+// import puppeteer from 'puppeteer';
+// import axios from 'axios';
+
+// export const getOptionChain = async (req, res) => {
+//   const symbol = req.query.index || 'NIFTY';
+//   let browser;
+
+//   try {
+//     console.log('🚀 Launching Puppeteer...');
+//     browser = await puppeteer.launch({
+//       headless: true,
+//       args: ['--no-sandbox', '--disable-setuid-sandbox'],
+//     });
+
+//     const page = await browser.newPage();
+//     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+//     await page.setExtraHTTPHeaders({
+//       'Accept-Language': 'en-US,en;q=0.9',
+//     });
+
+//     console.log('🌐 Visiting NSE Option Chain Page...');
+//     await page.goto('https://www.nseindia.com/option-chain', {
+//       waitUntil: 'domcontentloaded',
+//       timeout: 15000,
+//     });
+
+//     await new Promise(resolve => setTimeout(resolve, 2000));
+
+//     const cookies = await page.cookies();
+//     const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join('; ');
+
+//     const apiUrl = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
+//     console.log(`📡 Fetching API with axios: ${apiUrl}`);
+
+//     const response = await axios.get(apiUrl, {
+//       headers: {
+//         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+//         'Accept': 'application/json',
+//         'Referer': 'https://www.nseindia.com/option-chain',
+//         'Cookie': cookieHeader,
+//       },
+//       timeout: 10000,
+//     });
+
+//     await browser.close();
+//     return res.status(200).json(response.data);
+
+//   } catch (err) {
+//     console.error('❌ Puppeteer axios fetch failed:', err.message);
+//     if (browser) await browser.close();
+//     return res.status(500).json({
+//       error: 'Failed to fetch option chain via Puppeteer',
+//       details: err.message,
+//     });
+//   }
+// };
+import axios from 'axios';
+
+export const getOptionChain = async (req, res) => {
+  const symbol = req.query.index || 'NIFTY';
+  const NSE_URL = `https://www.nseindia.com/api/option-chain-indices?symbol=${symbol}`;
+  const SCRAPE_DO_TOKEN = 'dea816863e854d26a15e13b94d75bdc9f6c5229f342';
+
+  // IMPORTANT: Enable JS rendering
+  const SCRAPE_DO_ENDPOINT = `http://api.scrape.do?token=${SCRAPE_DO_TOKEN}&url=${encodeURIComponent(NSE_URL)}&render=true`;
+
+  try {
+    console.log('🌐 Fetching NSE Option Chain via Scrape.do with rendering...');
+    const response = await axios.get(SCRAPE_DO_ENDPOINT, { timeout: 30000 });
+
+    console.log('✅ Success from Scrape.do!');
+    return res.status(200).json(response.data);
+
+  } catch (error) {
+    console.error('❌ Error fetching via Scrape.do:', error.message);
+    return res.status(500).json({
+      error: 'Failed to fetch option chain via Scrape.do',
+      details: error.message,
+    });
+  }
+};
+
+
+
+
+
 const marketController = {
   addToWatchList,
   getWatchList,
@@ -2025,7 +2112,7 @@ const marketController = {
   removeSymbolFromWatchlist,
   getSymbolsInWatchlist,
   getAllSymbolsByUser,
-  exportStocksToExcel
+  exportStocksToExcel,getOptionChain
 };
 
 export default marketController;

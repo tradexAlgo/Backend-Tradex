@@ -45,6 +45,10 @@ const register = async (req, res) => {
       panNumber
     });
     const user = await newUser.save();
+    
+    console.log("User found:", user?._id);
+    await ensureDefaultWatchlist(user._id);
+
     const token = jwt.sign(
       {
         _id: user._id,
