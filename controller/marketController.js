@@ -1693,14 +1693,105 @@ const squareOffCommodity = async (req, res) => {
 
 
 
+// const getMyStocks = async (req, res) => {
+//   const userId = req.user._id;
+//   const type = req.params.type;
+
+//   try {
+//     const StocksData = await Stock.find({ userId });
+//     let data = [];
+//     data = StocksData;
+//     if (type === "pending") {
+//       data = StocksData.filter((stock) => !stock.executed && !stock.squareOff);
+//     }
+//     if (type === "executed" || type === "trades") {
+//       data = StocksData.filter((stock) => stock.executed && !stock.squareOff);
+//     }
+//     if (type === "others") {
+//       data = StocksData.filter((stock) => stock.failed && !stock.squareOff);
+//     }
+//     return send200(res, {
+//       status: true,
+//       message: MESSAGE.USER_STOCK_DATA,
+//       data,
+//     });
+//   } catch (error) {
+//     return send500(res, {
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+// const getMyCommodities = async (req, res) => {
+//   const userId = req.user._id;
+//   const type = req.params.type;
+
+//   try {
+//     const commoditiesData = await commodityModels.find({ userId }); // Assume Commodity is the model for commodities
+//     let data = [];
+//     data = commoditiesData;
+//     if (type === "pending") {
+//       data = commoditiesData.filter((commodity) => !commodity.executed && !commodity.squareOff);
+//     }
+//     if (type === "executed" || type === "trades") {
+//       data = commoditiesData.filter((commodity) => commodity.executed && !commodity.squareOff);
+//     }
+//     if (type === "others") {
+//       data = commoditiesData.filter((commodity) => commodity.failed && !commodity.squareOff);
+//     }
+//     return send200(res, {
+//       status: true,
+//       message: MESSAGE.USER_COMMODITY_DATA,
+//       data,
+//     });
+//   } catch (error) {
+//     return send500(res, {
+//       status: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 const getMyStocks = async (req, res) => {
   const userId = req.user._id;
   const type = req.params.type;
 
+  // Calculate today's date in IST timezone
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+  const nowUTC = new Date();
+  const nowIST = new Date(nowUTC.getTime() + IST_OFFSET_MS);
+
+  const istStartOfToday = new Date(nowIST);
+  istStartOfToday.setHours(0, 0, 0, 0);
+
+  const istEndOfToday = new Date(nowIST);
+  istEndOfToday.setHours(23, 59, 59, 999);
+
+  const startOfTodayUTC = new Date(istStartOfToday.getTime() - IST_OFFSET_MS);
+  const endOfTodayUTC = new Date(istEndOfToday.getTime() - IST_OFFSET_MS);
+
+  console.log('IST Start of Today:', istStartOfToday.toISOString());
+  console.log('IST End of Today:', istEndOfToday.toISOString());
+  console.log('UTC Start of Today (for MongoDB):', startOfTodayUTC.toISOString());
+  console.log('UTC End of Today (for MongoDB):', endOfTodayUTC.toISOString());
+
   try {
-    const StocksData = await Stock.find({ userId });
-    let data = [];
-    data = StocksData;
+    // You can choose buyDate or createdAt depending on your data
+    const StocksData = await Stock.find({
+      userId,
+      buyDate: { $gte: startOfTodayUTC, $lte: endOfTodayUTC }
+      // Or createdAt if that's your consistent field:
+      // createdAt: { $gte: startOfTodayUTC, $lte: endOfTodayUTC }
+    });
+
+    console.log('Fetched Stocks count:', StocksData.length);
+    StocksData.slice(0, 5).forEach((doc, i) =>
+      console.log(`Stock ${i + 1}: buyDate=${doc.buyDate}, createdAt=${doc.createdAt}`)
+    );
+
+    let data = StocksData;
     if (type === "pending") {
       data = StocksData.filter((stock) => !stock.executed && !stock.squareOff);
     }
@@ -1710,12 +1801,14 @@ const getMyStocks = async (req, res) => {
     if (type === "others") {
       data = StocksData.filter((stock) => stock.failed && !stock.squareOff);
     }
+
     return send200(res, {
       status: true,
       message: MESSAGE.USER_STOCK_DATA,
       data,
     });
   } catch (error) {
+    console.error('Error in getMyStocks:', error);
     return send500(res, {
       status: false,
       message: error.message,
@@ -1723,14 +1816,45 @@ const getMyStocks = async (req, res) => {
   }
 };
 
+
 const getMyCommodities = async (req, res) => {
   const userId = req.user._id;
   const type = req.params.type;
 
+  // Calculate today's date in IST timezone
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+  const nowUTC = new Date();
+  const nowIST = new Date(nowUTC.getTime() + IST_OFFSET_MS);
+
+  const istStartOfToday = new Date(nowIST);
+  istStartOfToday.setHours(0, 0, 0, 0);
+
+  const istEndOfToday = new Date(nowIST);
+  istEndOfToday.setHours(23, 59, 59, 999);
+
+  const startOfTodayUTC = new Date(istStartOfToday.getTime() - IST_OFFSET_MS);
+  const endOfTodayUTC = new Date(istEndOfToday.getTime() - IST_OFFSET_MS);
+
+  console.log('IST Start of Today:', istStartOfToday.toISOString());
+  console.log('IST End of Today:', istEndOfToday.toISOString());
+  console.log('UTC Start of Today (for MongoDB):', startOfTodayUTC.toISOString());
+  console.log('UTC End of Today (for MongoDB):', endOfTodayUTC.toISOString());
+
   try {
-    const commoditiesData = await commodityModels.find({ userId }); // Assume Commodity is the model for commodities
-    let data = [];
-    data = commoditiesData;
+    const commoditiesData = await commodityModels.find({
+      userId,
+      buyDate: { $gte: startOfTodayUTC, $lte: endOfTodayUTC }
+      // Or createdAt if you prefer:
+      // createdAt: { $gte: startOfTodayUTC, $lte: endOfTodayUTC }
+    });
+
+    console.log('Fetched Commodities count:', commoditiesData?.length);
+    commoditiesData.slice(0, 5).forEach((doc, i) =>
+      console.log(`Commodity ${i + 1}: buyDate=${doc.buyDate}, createdAt=${doc.createdAt}`)
+    );
+
+    let data = commoditiesData;
     if (type === "pending") {
       data = commoditiesData.filter((commodity) => !commodity.executed && !commodity.squareOff);
     }
@@ -1740,18 +1864,21 @@ const getMyCommodities = async (req, res) => {
     if (type === "others") {
       data = commoditiesData.filter((commodity) => commodity.failed && !commodity.squareOff);
     }
+
     return send200(res, {
       status: true,
       message: MESSAGE.USER_COMMODITY_DATA,
       data,
     });
   } catch (error) {
+    console.error('Error in getMyCommodities:', error);
     return send500(res, {
       status: false,
       message: error.message,
     });
   }
 };
+
 
 
 const getMyStockHistory = async (req, res) => {
