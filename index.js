@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';  // Import fileURLToPath
 import { dirname } from 'path';       // Import dirname
 import userModels from "./models/user.models.js";
 import "././utils/stockLive.js";
+// import { startWebSocket } from  "././controller/fyersSocket.js";
 dotenv.config();
 
 const app = express();
@@ -66,4 +67,7 @@ app.get('/export-xlsx', async (req, res) => {
 });
 
 
-app.listen(port, () => console.log(`server listening on port ${port}`));
+app.listen(port, () =>{ 
+  console.log(`server listening on port ${port}`)
+  // startWebSocket()
+});

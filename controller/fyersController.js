@@ -11,11 +11,11 @@ const fyers = new FyersModel.fyersModel({
   enableLogging: true,
 });
 
-fyers.setAppId("OQPJKMQBRZ-100");
+fyers.setAppId("KRH5CET3E7-100");
 
 // fyers.setRedirectUrl("https://trade.fyers.in/api-login/redirect-uri/index.html");
 fyers.setRedirectUrl(
-  "https://api-t1.fyers.in/api/v3/generate-authcode?client_id=OQPJKMQBRZ-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=OQPJKMQBRZ-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=OQPJKMQBRZ-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=OQPJKMQBRZ-100&redirect_uri=https://trade.fyers.in/api-login/redirect-uri/index.html?s=ok?s=ok&code=200&auth_code=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkubG9naW4uZnllcnMuaW4iLCJpYXQiOjE3MjMyMzQ4MDcsImV4cCI6MTcyMzI2NDgwNywibmJmIjoxNzIzMjM0MjA3LCJhdWQiOiJbXCJ4OjBcIiwgXCJ4OjFcIiwgXCJ4OjJcIiwgXCJkOjFcIiwgXCJkOjJcIiwgXCJ4OjFcIiwgXCJ4OjBcIl0iLCJzdWIiOiJhdXRoX2NvZGUiLCJkaXNwbGF5X25hbWUiOiJZTzAwNjQ1Iiwib21zIjoiSzEiLCJoc21fa2V5IjoiM2JiMWY2ZDVlYThlNTcxNjg4MGQ5NjkzOWYxZjNkMmMxZTA2NGFhYWYyNDFlMDQwOGJlZjE4NDgiLCJub25jZSI6IiIsImFwcF9pZCI6Ik9RUEpLTVFCUloiLCJ1dWlkIjoiNDI0YWI3ZTVmODM1NGIyOWJlYTdjZjgyMTJkZGQ1ODUiLCJpcEFkZHIiOiIwLjAuMC4wIiwic2NvcGUiOiIifQ.2nri6FVi_EmoSLyNGAZZgNsv6Id9pRG76JUGbA5g-l0&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state"
+  "https://api-t1.fyers.in/api/v3/generate-authcode?client_id=KRH5CET3E7-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=KRH5CET3E7-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=KRH5CET3E7-100&redirect_uri=https://api-t1.fyers.in/api/v3/generate-authcode?client_id=KRH5CET3E7-100&redirect_uri=https://trade.fyers.in/api-login/redirect-uri/index.html?s=ok?s=ok&code=200&auth_code=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkubG9naW4uZnllcnMuaW4iLCJpYXQiOjE3MjMyMzQ4MDcsImV4cCI6MTcyMzI2NDgwNywibmJmIjoxNzIzMjM0MjA3LCJhdWQiOiJbXCJ4OjBcIiwgXCJ4OjFcIiwgXCJ4OjJcIiwgXCJkOjFcIiwgXCJkOjJcIiwgXCJ4OjFcIiwgXCJ4OjBcIl0iLCJzdWIiOiJhdXRoX2NvZGUiLCJkaXNwbGF5X25hbWUiOiJZTzAwNjQ1Iiwib21zIjoiSzEiLCJoc21fa2V5IjoiM2JiMWY2ZDVlYThlNTcxNjg4MGQ5NjkzOWYxZjNkMmMxZTA2NGFhYWYyNDFlMDQwOGJlZjE4NDgiLCJub25jZSI6IiIsImFwcF9pZCI6Ik9RUEpLTVFCUloiLCJ1dWlkIjoiNDI0YWI3ZTVmODM1NGIyOWJlYTdjZjgyMTJkZGQ1ODUiLCJpcEFkZHIiOiIwLjAuMC4wIiwic2NvcGUiOiIifQ.2nri6FVi_EmoSLyNGAZZgNsv6Id9pRG76JUGbA5g-l0&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state&response_type=code&state=sample_state"
 );
 
 fyers.setAccessToken(
@@ -56,7 +56,7 @@ const generateAuthCode = (req, res) => {
 //     try {
 //         const response = await fyers.generate_access_token({
 //             client_id: "96KT74LUZO-100",
-//             secret_key: "Q5XKXQ406V",
+//             secret_key: "PXDUOGP68H",
 //             auth_code: authCode
 //         });
 
@@ -98,8 +98,8 @@ const generateAccessToken = async (req, res) => {
 
   try {
     const response = await fyers.generate_access_token({
-      client_id: "OQPJKMQBRZ-100",
-      secret_key: "Q5XKXQ406V",
+      client_id: "KRH5CET3E7-100",
+      secret_key: "PXDUOGP68H",
       auth_code: authCode,
     });
 
