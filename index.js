@@ -12,7 +12,7 @@ import xlsx from "xlsx";
 import { fileURLToPath } from 'url';  // Import fileURLToPath
 import { dirname } from 'path';       // Import dirname
 import userModels from "./models/user.models.js";
-
+import "././utils/stockLive.js";
 dotenv.config();
 
 const app = express();

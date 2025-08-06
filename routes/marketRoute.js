@@ -35,6 +35,7 @@ const {
   getProfile,
   generateAccessToken,
   getQuotes,
+  getQuotesV2,
   checkApiLimit
 } = fyersController;
 
@@ -66,6 +67,7 @@ router.get("/getProfile", getProfile);
 router.get("/generateAccessToken", generateAccessToken);
 router.get("/checkApiLimit", checkApiLimit);
 router.post("/getQuotes", getQuotes);
+router.post("/getQuotesV2", getQuotesV2);
 router.get("/chain", chain);
 
 router.delete("/removewatchlistitem/:symbol", verifyToken, removeWatchListItem);

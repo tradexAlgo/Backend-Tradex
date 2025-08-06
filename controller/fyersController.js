@@ -1,6 +1,7 @@
 // controllers/fyersController.js
 import FyersModel from "fyers-api-v3";
 import responseHelper from "../helpers/response.helper.js";
+import stockLiveModels from "../models/stockLive.models.js";
 
 const { send200, send400, send500 } = responseHelper;
 
@@ -184,6 +185,7 @@ const getQuotes = async (req, res) => {
 
   try {
     const response = await fyers.getQuotes(symbols);
+    console.log("response", response?.d);
     return send200(res, {
       status: true,
       data: response,
@@ -197,6 +199,66 @@ const getQuotes = async (req, res) => {
     });
   }
 };
+
+export const getQuotesV2 = async (req, res) => {
+  const { symbols } = req.body;
+
+  if (!symbols || !Array.isArray(symbols)) {
+    return res.status(400).json({
+      status: false,
+      message: "Symbols array is required.",
+    });
+  }
+
+  try {
+    // Build regex-based query for partial matching
+    const regexQueries = symbols.map((sym) => ({
+      symbol: { $regex: sym, $options: "i" }, // case-insensitive partial match
+    }));
+
+    const data = await stockLiveModels.find({ $or: regexQueries });
+
+    return res.status(200).json({
+      status: true,
+      data,
+      message: "Fetched live quotes using partial symbol match",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch live quotes.",
+      error: error.message,
+    });
+  }
+};
+
+
+
+// export const getQuotesV2 = async (req, res) => {
+//   const { symbols } = req.body;
+
+//   if (!symbols || !Array.isArray(symbols)) {
+//     return res.status(400).json({
+//       status: false,
+//       message: "Symbols array is required.",
+//     });
+//   }
+
+//   try {
+//     const data = await stockLiveModels.find({ symbol: { $in: symbols } });
+//     return res.status(200).json({
+//       status: true,
+//       data,
+//       message: "Fetched live quotes from DB",
+//     });
+//   } catch (error) {
+//     return res.status(500).json({
+//       status: false,
+//       message: "Failed to fetch live quotes.",
+//       error: error.message,
+//     });
+//   }
+// };
 
 // Get market depth for provided symbols
 const getMarketDepth = async (req, res) => {
@@ -235,4 +297,5 @@ export default {
   getQuotes,
   getMarketDepth,
   checkApiLimit,
+  getQuotesV2
 };
