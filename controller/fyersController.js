@@ -173,32 +173,32 @@ const checkApiLimit = async (req, res) => {
   }
 };
 
- const getQuotes = async (req, res) => {
-  const { symbols } = req.body;
-  console.log("symobls reque", req.body);
-  if (!symbols || !Array.isArray(symbols)) {
-    return send400(res, {
-      status: false,
-      message: "Symbols array is required",
-    });
-  }
+//  const getQuotes = async (req, res) => {
+//   const { symbols } = req.body;
+//   console.log("symobls reque", req.body);
+//   if (!symbols || !Array.isArray(symbols)) {
+//     return send400(res, {
+//       status: false,
+//       message: "Symbols array is required",
+//     });
+//   }
 
-  try {
-    const response = await fyers.getQuotes(symbols);
-    console.log("response", response?.d);
-    return send200(res, {
-      status: true,
-      data: response,
-      message: "Quotes fetched successfully",
-    });
-  } catch (error) {
-    return send500(res, {
-      status: false,
-      message: "Error fetching quotes",
-      details: error,
-    });
-  }
-};
+//   try {
+//     const response = await fyers.getQuotes(symbols);
+//     console.log("response", response?.d);
+//     return send200(res, {
+//       status: true,
+//       data: response,
+//       message: "Quotes fetched successfully",
+//     });
+//   } catch (error) {
+//     return send500(res, {
+//       status: false,
+//       message: "Error fetching quotes",
+//       details: error,
+//     });
+//   }
+// };
 
 
 // Get quotes for provided symbols
@@ -254,6 +254,60 @@ const checkApiLimit = async (req, res) => {
 //     });
 //   }
 // };
+
+
+const getQuotes = async (req, res) => {
+  const { symbols } = req.body;
+  console.log("symbols requested:", symbols);
+
+  if (!symbols || !Array.isArray(symbols)) {
+    return send200(res, {
+      status: false,
+      message: "Symbols array is required",
+      data: null,
+    });
+  }
+
+  try {
+    const response = await fyers.getQuotes(symbols);
+
+    // If response is HTML (indicating a bad response)
+    if (typeof response === "string" && response.startsWith("<!DOCTYPE html>")) {
+      console.error("Received HTML response instead of JSON");
+      return send200(res, {
+        status: false,
+        message: "Invalid response from Fyers API (HTML content)",
+        data: null,
+      });
+    }
+
+    // If response.d is undefined or empty
+    if (!response?.d) {
+      console.error("No data in response:", response);
+      return send200(res, {
+        status: false,
+        message: "No data received from Fyers API",
+        data: null,
+      });
+    }
+
+    console.log("Quotes response:", response.d);
+    return send200(res, {
+      status: true,
+      message: "Quotes fetched successfully",
+      data: response,
+    });
+  } catch (error) {
+    console.error("getQuotes error:", error.message || error);
+
+    return send200(res, {
+      status: false,
+      message: "Failed to fetch quotes",
+      error: error.message || error,
+      data: null,
+    });
+  }
+};
 
 
 export const getQuotesV2 = async (req, res) => {
