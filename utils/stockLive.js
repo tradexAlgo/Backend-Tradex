@@ -259,12 +259,150 @@
 
 
 
+// -----------------------------------------------------------------
+
+
+
+
+// import fetch from "node-fetch";
+// import axios from "axios";
+// import stockLiveModels from "../models/stockLive.models.js";
+
+// // Constants
+// const CHUNK_SIZE = 8;
+// const requiredSymbols = [
+//     'SILVERM',
+//     'SILVERMIC',
+//     'SILVER',
+//     'CRUDEOILM',
+//     'ZINC',
+//     'LEAD',
+//     'NATURALGAS',
+//     'GOLDM'
+// ];
+
+// // Utility: Random wait between 2-3 seconds
+// const wait = (min = 2000, max = 3000) =>
+//     new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min));
+
+// const fetchSymbolList = async () => {
+//     const res = await fetch("https://public.fyers.in/sym_details/MCX_COM_sym_master.json");
+//     if (!res.ok) throw new Error(`Failed to fetch MCX master: ${res.statusText}`);
+
+//     const buffer = await res.arrayBuffer();
+//     const decompressedText = new TextDecoder("utf-8").decode(buffer);
+//     const json = JSON.parse(decompressedText);
+
+//     const latestExpiryMap = new Map();
+
+//     Object.entries(json).forEach(([_, value]) => {
+//         if (value.exInstType === 30 && value.tradeStatus === 1) {
+//             const key = value.underSym;
+//             const existing = latestExpiryMap.get(key);
+//             if (!existing || Number(value.expiryDate) < Number(existing.expiryDate)) {
+//                 latestExpiryMap.set(key, value);
+//             }
+//         }
+//     });
+
+//     const result = Array.from(latestExpiryMap.values()).map(item => ({
+//         exSymName: item.exSymName,
+//         symTicker: item.symTicker,
+//         symbolDesc: item.symbolDesc,
+//     }));
+
+//     return result.filter(item =>
+//         requiredSymbols.some(symbol =>
+//             item.exSymName.startsWith(symbol) &&
+//             (
+//                 item.exSymName.length === symbol.length ||
+//                 item.exSymName[symbol.length]?.match(/[0-9]/)
+//             )
+//         )
+//     );
+// };
+
+// const updateLiveQuotesLoop = async () => {
+//     try {
+//         const filteredList = await fetchSymbolList();
+//         const symbolMetaMap = new Map();
+
+//         filteredList.forEach(item => {
+//             symbolMetaMap.set(item.symTicker, {
+//                 exSymName: item.exSymName,
+//                 symbolDesc: item.symbolDesc,
+//             });
+//         });
+
+//         const symbols = filteredList.map(item => item.symTicker);
+
+//         // console.log(`[✅ StockLive Init] Loaded ${symbols.length} symbols`);
+//         console.log(symbols);
+
+//         while (true) {
+//             try {
+//                 const { data: response } = await axios.post(
+//                     "http://192.168.59.64:5001/market/getQuotes",
+//                     // "https://backend-tradex.onrender.com/market/getQuotes",
+//                     { symbols }
+//                 );
+
+//                 console.log("check the resssonse",response?.data?.d)
+
+//                 const quotes = response?.data?.d || [];
+
+//                 await Promise.all(
+//                     quotes.map(async (quote) => {
+//                         const symbol = quote.n;
+//                         const data = quote.v;
+//                         const meta = symbolMetaMap.get(symbol) || {};
+
+//                         await stockLiveModels.findOneAndUpdate(
+//                             { symbol },
+//                             {
+//                                 symbol,
+//                                 data,
+//                                 exSymName: meta.exSymName || "",
+//                                 symbolDesc: meta.symbolDesc || "",
+//                                 lastUpdated: new Date(),
+//                             },
+//                             { upsert: true, new: true }
+//                         );
+//                     })
+//                 );
+
+//                 console.log(`[✅ Updated] ${quotes.length} symbols at ${new Date().toLocaleTimeString()}`);
+//             } catch (err) {
+//                 console.error("❌ Error during getQuotes:", err.message);
+//             }
+
+//             // Wait before next round
+//             await wait(2000, 3000);
+//         }
+//     } catch (error) {
+//         console.error("[❌ StockLive Init Error]:", error.message);
+//         setTimeout(updateLiveQuotesLoop, 10000); // retry after 10s
+//     }
+// };
+
+// updateLiveQuotesLoop();
+
+
+
+
+
+
+// ---------------------------------------/
+
+
+
+
 import fetch from "node-fetch";
 import axios from "axios";
 import stockLiveModels from "../models/stockLive.models.js";
 
 // Constants
-const CHUNK_SIZE = 8;
+const INTERVAL_MS = 5000; // 5 seconds
 const requiredSymbols = [
     'SILVERM',
     'SILVERMIC',
@@ -275,10 +413,6 @@ const requiredSymbols = [
     'NATURALGAS',
     'GOLDM'
 ];
-
-// Utility: Random wait between 2-3 seconds
-const wait = (min = 2000, max = 3000) =>
-    new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min));
 
 const fetchSymbolList = async () => {
     const res = await fetch("https://public.fyers.in/sym_details/MCX_COM_sym_master.json");
@@ -330,19 +464,15 @@ const updateLiveQuotesLoop = async () => {
         });
 
         const symbols = filteredList.map(item => item.symTicker);
-
-        // console.log(`[✅ StockLive Init] Loaded ${symbols.length} symbols`);
+        console.log(`[✅ StockLive Init] Loaded ${symbols.length} symbols`);
         console.log(symbols);
 
-        while (true) {
+        const updateQuotes = async () => {
             try {
                 const { data: response } = await axios.post(
-                    // "http://192.168.59.64:5001/market/getQuotes",
-                    "https://backend-tradex.onrender.com/market/getQuotes",
+                    "http://192.168.146.64:5001/market/getQuotes",
                     { symbols }
                 );
-
-                console.log("check the resssonse",response?.data?.d)
 
                 const quotes = response?.data?.d || [];
 
@@ -370,14 +500,18 @@ const updateLiveQuotesLoop = async () => {
             } catch (err) {
                 console.error("❌ Error during getQuotes:", err.message);
             }
+        };
 
-            // Wait before next round
-            await wait(2000, 3000);
-        }
+        // Initial call
+        await updateQuotes();
+
+        // Repeat every 5 seconds
+        setInterval(updateQuotes, INTERVAL_MS);
     } catch (error) {
         console.error("[❌ StockLive Init Error]:", error.message);
         setTimeout(updateLiveQuotesLoop, 10000); // retry after 10s
     }
 };
 
+// Start the loop
 updateLiveQuotesLoop();

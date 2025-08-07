@@ -172,6 +172,34 @@ const checkApiLimit = async (req, res) => {
   }
 };
 
+ const getQuotes = async (req, res) => {
+  const { symbols } = req.body;
+  console.log("symobls reque", req.body);
+  if (!symbols || !Array.isArray(symbols)) {
+    return send400(res, {
+      status: false,
+      message: "Symbols array is required",
+    });
+  }
+
+  try {
+    const response = await fyers.getQuotes(symbols);
+    console.log("response", response?.d);
+    return send200(res, {
+      status: true,
+      data: response,
+      message: "Quotes fetched successfully",
+    });
+  } catch (error) {
+    return send500(res, {
+      status: false,
+      message: "Error fetching quotes",
+      details: error,
+    });
+  }
+};
+
+
 // Get quotes for provided symbols
 // const getQuotes = async (req, res) => {
 //   const { symbols } = req.body;
@@ -199,37 +227,32 @@ const checkApiLimit = async (req, res) => {
 //     });
 //   }
 // };
-const getQuotes = async (req, res) => {
-  const { symbols } = req.body;
-  if (!symbols || !Array.isArray(symbols)) {
-    return send400(res, {
-      status: false,
-      message: "Symbols array is required",
-    });
-  }
+// const getQuotes = async (req, res) => {
+//   const { symbols } = req.body;
+//   if (!symbols || !Array.isArray(symbols)) {
+//     return send400(res, {
+//       status: false,
+//       message: "Symbols array is required",
+//     });
+//   }
 
-  try {
-    const response = await fyers.getQuotes(symbols, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36",
-      },
-    });
+//   try {
+//     const response = await fyers.getQuotes(symbols);
 
-    return send200(res, {
-      status: true,
-      data: response,
-      message: "Quotes fetched successfully",
-    });
-  } catch (error) {
-    console.log("Quotes error:", error?.response?.data || error.message);
-    return send500(res, {
-      status: false,
-      message: "Error fetching quotes",
-      details: error?.response?.data || error.message,
-    });
-  }
-};
+//     return send200(res, {
+//       status: true,
+//       data: response,
+//       message: "Quotes fetched successfully",
+//     });
+//   } catch (error) {
+//     console.log("Quotdes error:", error);
+//     return send500(res, {
+//       status: false,
+//       message: "Error fetching quotes",
+//       details: error?.response?.data || error.message,
+//     });
+//   }
+// };
 
 
 export const getQuotesV2 = async (req, res) => {
