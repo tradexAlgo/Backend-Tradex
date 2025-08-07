@@ -13,6 +13,11 @@ import { fileURLToPath } from 'url';  // Import fileURLToPath
 import { dirname } from 'path';       // Import dirname
 import userModels from "./models/user.models.js";
 import "././utils/stockLive.js";
+
+import { startFyersSocket } from "./socket/fyersSocket.js";
+startFyersSocket();
+
+
 // import { startWebSocket } from  "././controller/fyersSocket.js";
 dotenv.config();
 

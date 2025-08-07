@@ -514,4 +514,4 @@ const updateLiveQuotesLoop = async () => {
 };
 
 // Start the loop
-updateLiveQuotesLoop();
+// updateLiveQuotesLoop();
