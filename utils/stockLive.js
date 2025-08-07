@@ -470,7 +470,7 @@ const updateLiveQuotesLoop = async () => {
         const updateQuotes = async () => {
             try {
                 const { data: response } = await axios.post(
-                    "http://192.168.146.64:5001/market/getQuotes",
+                    "https://backend-tradex.onrender.com/market/getQuotes",
                     { symbols }
                 );
 
