@@ -446,11 +446,11 @@ const ensureDefaultWatchlist = async (userId) => {
   );
 
   // Create "MCX" if missing
-  await watchList.findOneAndUpdate(
-    { userId, name: "MCX" },
-    {},
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  // await watchList.findOneAndUpdate(
+  //   { userId, name: "MCX" },
+  //   {},
+  //   { upsert: true, new: true, setDefaultsOnInsert: true }
+  // );
 
   // Create "OPTION CHAIN" and add default symbol
   const optionChain = await watchList.findOneAndUpdate(
