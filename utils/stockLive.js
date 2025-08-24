@@ -408,6 +408,8 @@ const requiredSymbols = [
     'SILVERMIC',
     'SILVER',
     'CRUDEOILM',
+    'CRUDEOIL',
+    'GOLD',
     'ZINC',
     'LEAD',
     'NATURALGAS',
