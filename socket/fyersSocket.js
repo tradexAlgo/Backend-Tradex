@@ -97,8 +97,8 @@ async function getNseOptions() {
 
     // Define the base symbols, strike range, and steps for options
     const optionConfigs = {
-        NIFTY: { strikes: [19500, 20500], step: 100 },
-        BANKNIFTY: { strikes: [44000, 46000], step: 200 },
+        NIFTY: { strikes: [24000, 26000], step: 50 },
+        BANKNIFTY: { strikes: [53000, 55000], step: 100 },
         // Add more indices or stocks with their respective strike ranges
     };
 
