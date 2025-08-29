@@ -20,6 +20,8 @@ const nseFuturesBase = [
     { symbol: "BANKNIFTY", name: "Nifty Bank Index" },
     { symbol: "FINNIFTY", name: "Nifty Financial Services Index" },
     { symbol: "MIDCPNIFTY", name: "Nifty Midcap Select Index" },
+    { symbol: "NSE:NIFTY25SEPT25000CE", name: "Nifty k Select Index" },
+    { symbol: "NSE:NIFTY25SEPT25000CE", name: "Nifty kk Select Index" },
 
     { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
     { symbol: "TATASTEEL", name: "Tata Steel Limited" },
