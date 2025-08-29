@@ -89,7 +89,7 @@ function convertToFyersFutureSymbol(symbol, expiry) {
  * @returns {Promise<string[]>} An array of option symbols (e.g., "NSE:NIFTY24AUG19500CE").
  */
 async function getNseOptions() {
-  return ['NSE:NIFTY25AUG25050CE', 'NSE:NIFTY25AUG25050PE'];
+  return ['NSE:NIFTY25SEPT25000CE', 'NSE:NIFTY25SEPT25000PE'];
 }
 
 
