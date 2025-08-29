@@ -4,9 +4,8 @@ import stockLiveModels from "../models/stockLive.models.js";
 
 const { fyersDataSocket } = pkg;
 
-// Replace with your actual token
-const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb3NoRWw1YXhkT2t0dl83aG9GdXlkbG5abC01RmxTZ084OWdSZHJxbFk2RlJ0cGxiLTJHRERLcVd0Y1Fubnl3cXZuT25pc1lmWGltblBWX2MxZ3FwQ0dweDU5dEhwSTQ4c25ZQjFtdjRzdXowNzlHUT0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiI5YjMwYWZhNDg0MWE3NWNkZjI1ZDlhMWNhNjVlMWE0NTEzNWY1YWY5OTdkOTVjYjU0NGYwZGExZCIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU2NjAwMjAwLCJpYXQiOjE3NTY1MDAyNjEsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1NjUwMDI2MSwic3ViIjoiYWNjZXNzX3Rva2VuIn0.oibWN1rKWs5S3jFPJeyawFzIIFvtdU3O4xFAHKipFkY";
-
+// Replace with your actual token - DO NOT hardcode this in a production environment
+const TOKEN = "YOUR_DYNAMIC_ACCESS_TOKEN";
 
 const requiredSymbols = [
     'SILVERM', 'SILVERMIC', 'SILVER',
@@ -83,44 +82,37 @@ function convertToFyersFutureSymbol(symbol, expiry) {
 }
 
 // ---------------- NSE Options Function ----------------
-/**
- * Generates an array of Fyers NSE option symbols for the upcoming expiry.
- *
- * @returns {Promise<string[]>} An array of option symbols (e.g., "NSE:NIFTY24AUG19500CE").
- */
 async function getNseOptions(livePrices) {
     const options = [];
     const year = new Date().getFullYear().toString().slice(-2);
     const [day, mon] = getUpcomingNseExpiry().split(" ");
     const expiry = `${year}${mon.toUpperCase()}${day}`;
 
-    // Define the base symbols, strike range, and steps for options
     const optionConfigs = {
-        NIFTY: { strikes: [24000, 25000], step: 50, livePrice: livePrices.NIFTY },
-        BANKNIFTY: { strikes: [53000, 55000], step: 100, livePrice: livePrices.BANKNIFTY },
-        FINNIFTY: { strikes: [25000, 26000], step: 50, livePrice: livePrices.FINNIFTY },
-        SENSEX: { strikes: [80000, 81000], step: 100, livePrice: livePrices.SENSEX }
+        NIFTY: { step: 50, livePrice: livePrices.NIFTY },
+        BANKNIFTY: { step: 100, livePrice: livePrices.BANKNIFTY },
+        FINNIFTY: { step: 50, livePrice: livePrices.FINNIFTY },
+        SENSEX: { step: 100, livePrice: livePrices.SENSEX }
     };
 
     for (const [underlying, config] of Object.entries(optionConfigs)) {
         const { livePrice, step } = config;
-        
-        // Calculate strikes around the live price
-        const startStrike = Math.floor(livePrice / step) * step - (step * 10); // 10 strikes below
-        const endStrike = Math.floor(livePrice / step) * step + (step * 10); // 10 strikes above
+
+        // Skip if live price is not available
+        if (!livePrice) continue;
+
+        const startStrike = Math.floor(livePrice / step) * step - (step * 10);
+        const endStrike = Math.floor(livePrice / step) * step + (step * 10);
 
         for (let strike = startStrike; strike <= endStrike; strike += step) {
-            // Construct the symbol for both Call and Put options
             const ceSymbol = `NSE:${underlying}${expiry}${strike}CE`;
             const peSymbol = `NSE:${underlying}${expiry}${strike}PE`;
-
             options.push(ceSymbol, peSymbol);
         }
     }
 
     return options;
 }
-
 
 const nseFutures = nseFuturesBase.map(item => ({
     ...item,
@@ -131,20 +123,32 @@ const nseFutures = nseFuturesBase.map(item => ({
 // ---------------- Main Function ----------------
 export async function startFyersSocket() {
     try {
-        const livePrices = {
-            NIFTY: 24574,
-            BANKNIFTY: 54000,
-            FINNIFTY: 25772,
-            SENSEX: 80400
-        };
+        // STEP 1: Fetch live prices for underlying indexes
+        const indexSymbols = ["NSE:NIFTY", "NSE:BANKNIFTY", "NSE:FINNIFTY", "BSE:SENSEX"];
+        const indexQuotesResponse = await fetch("https://backend-tradex.onrender.com/market/getQuotesV2", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ symbols: indexSymbols })
+        });
+        const indexQuotesData = await indexQuotesResponse.json();
+
+        const livePrices = {};
+        if (indexQuotesData?.status && indexQuotesData?.data) {
+            indexQuotesData.data.forEach(item => {
+                const name = item.symbol.split(':')[1] || item.symbol;
+                livePrices[name] = item.data.ltp || item.data.lp;
+            });
+        }
         
-        // STEP 1: Fetch MCX symbol list
+        console.log("Live Index Prices:", livePrices);
+
+        // STEP 2: Fetch MCX symbol list
         const res = await fetch("https://public.fyers.in/sym_details/MCX_COM_sym_master.json");
         const buffer = await res.arrayBuffer();
         const decompressedText = new TextDecoder("utf-8").decode(buffer);
         const json = JSON.parse(decompressedText);
 
-        // STEP 2: Filter latest expiry for required instruments
+        // STEP 3: Filter latest expiry for required instruments
         const latestExpiryMap = new Map();
         Object.entries(json).forEach(([_, value]) => {
             if (value.exInstType === 30 && value.tradeStatus === 1) {
@@ -184,7 +188,7 @@ export async function startFyersSocket() {
             return item.fyersSymbol;
         });
         
-        // NSE Options Tickers
+        // NSE Options Tickers - now using dynamic live prices
         const nseOptionsTickers = await getNseOptions(livePrices);
 
         // Combine all
@@ -192,7 +196,7 @@ export async function startFyersSocket() {
 
         console.log("🔗 Subscribing to symbols:", tickers);
 
-        // STEP 3: Connect WebSocket
+        // STEP 4: Connect WebSocket
         const fyersSocket = new fyersDataSocket(TOKEN, "", false);
         fyersSocket.autoreconnect(6);
 
