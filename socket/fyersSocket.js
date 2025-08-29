@@ -4,8 +4,9 @@ import stockLiveModels from "../models/stockLive.models.js";
 
 const { fyersDataSocket } = pkg;
 
-// Replace with your actual token - DO NOT hardcode this in a production environment
-const TOKEN = "YOUR_DYNAMIC_ACCESS_TOKEN";
+// Replace with your actual token
+
+const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb3NoRWw1YXhkT2t0dl83aG9GdXlkbG5abC01RmxTZ084OWdSZHJxbFk2RlJ0cGxiLTJHRERLcVd0Y1Fubnl3cXZuT25pc1lmWGltblBWX2MxZ3FwQ0dweDU5dEhwSTQ4c25ZQjFtdjRzdXowNzlHUT0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiI5YjMwYWZhNDg0MWE3NWNkZjI1ZDlhMWNhNjVlMWE0NTEzNWY1YWY5OTdkOTVjYjU0NGYwZGExZCIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU2NjAwMjAwLCJpYXQiOjE3NTY1MDAyNjEsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1NjUwMDI2MSwic3ViIjoiYWNjZXNzX3Rva2VuIn0.oibWN1rKWs5S3jFPJeyawFzIIFvtdU3O4xFAHKipFkY";
 
 const requiredSymbols = [
     'SILVERM', 'SILVERMIC', 'SILVER',
