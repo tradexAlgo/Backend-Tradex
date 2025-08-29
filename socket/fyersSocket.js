@@ -9,220 +9,196 @@ const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZ
 
 
 const requiredSymbols = [
-    'SILVERM', 'SILVERMIC', 'SILVER',
-    'CRUDEOILM', 'ZINC', 'LEAD',
-    'NATURALGAS', 'GOLDM'
+    'SILVERM', 'SILVERMIC', 'SILVER',
+    'CRUDEOILM', 'ZINC', 'LEAD',
+    'NATURALGAS', 'GOLDM'
 ];
 
 // ---------------- NSE Futures Base ----------------
 const nseFuturesBase = [
-    { symbol: "NIFTY", name: "Nifty 50 Index" },
-    { symbol: "BANKNIFTY", name: "Nifty Bank Index" },
-    { symbol: "FINNIFTY", name: "Nifty Financial Services Index" },
-    { symbol: "MIDCPNIFTY", name: "Nifty Midcap Select Index" },
+    { symbol: "NIFTY", name: "Nifty 50 Index" },
+    { symbol: "BANKNIFTY", name: "Nifty Bank Index" },
+    { symbol: "FINNIFTY", name: "Nifty Financial Services Index" },
+    { symbol: "MIDCPNIFTY", name: "Nifty Midcap Select Index" },
 
-    { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
-    { symbol: "TATASTEEL", name: "Tata Steel Limited" },
-    { symbol: "RELIANCE", name: "Reliance Industries Limited" },
-    { symbol: "ITC", name: "ITC Limited" },
-    { symbol: "INFY", name: "Infosys Limited" },
-    { symbol: "TCS", name: "Tata Consultancy Services Limited" },
-    { symbol: "ICICIBANK", name: "ICICI Bank Limited" },
-    { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
-    { symbol: "SBIN", name: "State Bank of India" },
-    { symbol: "BANKBARODA", name: "Bank of Baroda" },
-    { symbol: "ADANIPORTS", name: "Adani Ports and Special Economic Zone Limited" },
-    { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
-    { symbol: "AMBUJACEM", name: "Ambuja Cements Limited" },
-    { symbol: "AXISBANK", name: "Axis Bank Limited" },
-    { symbol: "BAJFINANCE", name: "Bajaj Finance Limited" },
-    { symbol: "BPCL", name: "Bharat Petroleum Corporation Limited" },
-    { symbol: "BHARTIARTL", name: "Bharti Airtel Limited" },
-    { symbol: "INDUSINDBK", name: "IndusInd Bank Limited" },
-    { symbol: "LICI", name: "Life Insurance Corporation of India" },
-    { symbol: "SUNPHARMA", name: "Sun Pharmaceutical Industries Limited" }
+    { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
+    { symbol: "TATASTEEL", name: "Tata Steel Limited" },
+    { symbol: "RELIANCE", name: "Reliance Industries Limited" },
+    { symbol: "ITC", name: "ITC Limited" },
+    { symbol: "INFY", name: "Infosys Limited" },
+    { symbol: "TCS", name: "Tata Consultancy Services Limited" },
+    { symbol: "ICICIBANK", name: "ICICI Bank Limited" },
+    { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
+    { symbol: "SBIN", name: "State Bank of India" },
+    { symbol: "BANKBARODA", name: "Bank of Baroda" },
+    { symbol: "ADANIPORTS", name: "Adani Ports and Special Economic Zone Limited" },
+    { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
+    { symbol: "AMBUJACEM", name: "Ambuja Cements Limited" },
+    { symbol: "AXISBANK", name: "Axis Bank Limited" },
+    { symbol: "BAJFINANCE", name: "Bajaj Finance Limited" },
+    { symbol: "BPCL", name: "Bharat Petroleum Corporation Limited" },
+    { symbol: "BHARTIARTL", name: "Bharti Airtel Limited" },
+    { symbol: "INDUSINDBK", name: "IndusInd Bank Limited" },
+    { symbol: "LICI", name: "Life Insurance Corporation of India" },
+    { symbol: "SUNPHARMA", name: "Sun Pharmaceutical Industries Limited" }
 ];
 
 // ---------------- Expiry Calculations ----------------
 function getLastThursday(date) {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const lastDay = new Date(year, month + 1, 0);
-    const day = lastDay.getDay();
-    const lastThursday = new Date(lastDay);
-    lastThursday.setDate(lastDay.getDate() - ((day + 3) % 7));
-    return lastThursday;
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const lastDay = new Date(year, month + 1, 0);
+    const day = lastDay.getDay();
+    const lastThursday = new Date(lastDay);
+    lastThursday.setDate(lastDay.getDate() - ((day + 3) % 7));
+    return lastThursday;
 }
 
 function getUpcomingNseExpiry() {
-    const today = new Date();
-    let expiry = getLastThursday(today);
-    if (expiry < today) {
-        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-        expiry = getLastThursday(nextMonth);
-    }
-    return expiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    const today = new Date();
+    let expiry = getLastThursday(today);
+    if (expiry < today) {
+        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        expiry = getLastThursday(nextMonth);
+    }
+    return expiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
 const upcomingExpiry = getUpcomingNseExpiry();
 
 // Convert to Fyers Futures symbol format
 function convertToFyersFutureSymbol(symbol, expiry) {
-    const year = new Date().getFullYear().toString().slice(-2); // '25'
-    const [day, mon] = expiry.split(" "); // e.g., "28 Aug"
-    const monthCode = mon.toUpperCase();
+    const year = new Date().getFullYear().toString().slice(-2); // '25'
+    const [day, mon] = expiry.split(" "); // e.g., "28 Aug"
+    const monthCode = mon.toUpperCase();
 
-    // Indexes (NIFTY, BANKNIFTY, etc.) don't have .NS
-    if (!symbol.endsWith(".NS")) {
-        return `NSE:${symbol}${year}${monthCode}FUT`;
-    }
+    // Indexes (NIFTY, BANKNIFTY, etc.) don't have .NS
+    if (!symbol.endsWith(".NS")) {
+        return `NSE:${symbol}${year}${monthCode}FUT`;
+    }
 
-    // Stocks — remove ".NS"
-    const base = symbol.replace(".NS", "");
-    return `NSE:${base}${year}${monthCode}FUT`;
+    // Stocks — remove ".NS"
+    const base = symbol.replace(".NS", "");
+    return `NSE:${base}${year}${monthCode}FUT`;
 }
 
 // ---------------- NSE Options Function ----------------
 /**
- * Generates an array of Fyers NSE option symbols for the upcoming expiry.
- *
- * @returns {Promise<string[]>} An array of option symbols (e.g., "NSE:NIFTY24AUG19500CE").
- */
+ * Generates an array of Fyers NSE option symbols for the upcoming expiry.
+ *
+ * @returns {Promise<string[]>} An array of option symbols (e.g., "NSE:NIFTY24AUG19500CE").
+ */
 async function getNseOptions() {
-    const options = [];
-    const year = new Date().getFullYear().toString().slice(-2);
-    const [day, mon] = getUpcomingNseExpiry().split(" ");
-    const expiry = `${year}${mon.toUpperCase()}`;
-    const date = `${year}${mon.toUpperCase()}${day}`;
-
-    // Define the base symbols, strike range, and steps for options
-    const optionConfigs = {
-        NIFTY: { strikes: [24000, 26000], step: 50 },
-        BANKNIFTY: { strikes: [53000, 55000], step: 100 },
-        // Add more indices or stocks with their respective strike ranges
-    };
-
-    for (const [underlying, config] of Object.entries(optionConfigs)) {
-        const { strikes, step } = config;
-        for (let strike = strikes[0]; strike <= strikes[1]; strike += step) {
-            // Construct the symbol for both Call and Put options
-            const ceSymbol = `NSE:${underlying}${expiry}${strike}CE`;
-            const peSymbol = `NSE:${underlying}${expiry}${strike}PE`;
-
-            options.push(ceSymbol, peSymbol);
-        }
-    }
-
-    return options;
+  return ['NSE:NIFTY25AUG25050CE', 'NSE:NIFTY25AUG25050PE'];
 }
 
 
 const nseFutures = nseFuturesBase.map(item => ({
-    ...item,
-    fyersSymbol: convertToFyersFutureSymbol(item.symbol, upcomingExpiry),
-    expiry: upcomingExpiry
+    ...item,
+    fyersSymbol: convertToFyersFutureSymbol(item.symbol, upcomingExpiry),
+    expiry: upcomingExpiry
 }));
 
 // ---------------- Main Function ----------------
 export async function startFyersSocket() {
-    try {
-        // STEP 1: Fetch MCX symbol list
-        const res = await fetch("https://public.fyers.in/sym_details/MCX_COM_sym_master.json");
-        const buffer = await res.arrayBuffer();
-        const decompressedText = new TextDecoder("utf-8").decode(buffer);
-        const json = JSON.parse(decompressedText);
+    try {
+        // STEP 1: Fetch MCX symbol list
+        const res = await fetch("https://public.fyers.in/sym_details/MCX_COM_sym_master.json");
+        const buffer = await res.arrayBuffer();
+        const decompressedText = new TextDecoder("utf-8").decode(buffer);
+        const json = JSON.parse(decompressedText);
 
-        // STEP 2: Filter latest expiry for required instruments
-        const latestExpiryMap = new Map();
-        Object.entries(json).forEach(([_, value]) => {
-            if (value.exInstType === 30 && value.tradeStatus === 1) {
-                const key = value.underSym;
-                const existing = latestExpiryMap.get(key);
-                if (!existing || Number(value.expiryDate) < Number(existing.expiryDate)) {
-                    latestExpiryMap.set(key, value);
-                }
-            }
-        });
+        // STEP 2: Filter latest expiry for required instruments
+        const latestExpiryMap = new Map();
+        Object.entries(json).forEach(([_, value]) => {
+            if (value.exInstType === 30 && value.tradeStatus === 1) {
+                const key = value.underSym;
+                const existing = latestExpiryMap.get(key);
+                if (!existing || Number(value.expiryDate) < Number(existing.expiryDate)) {
+                    latestExpiryMap.set(key, value);
+                }
+            }
+        });
 
-        const filtered = Array.from(latestExpiryMap.values()).filter(item =>
-            requiredSymbols.some(symbol =>
-                item.exSymName.startsWith(symbol) &&
-                (item.exSymName.length === symbol.length || item.exSymName[symbol.length]?.match(/[0-9]/))
-            )
-        );
+        const filtered = Array.from(latestExpiryMap.values()).filter(item =>
+            requiredSymbols.some(symbol =>
+                item.exSymName.startsWith(symbol) &&
+                (item.exSymName.length === symbol.length || item.exSymName[symbol.length]?.match(/[0-9]/))
+            )
+        );
 
-        const symbolMetaMap = new Map();
+        const symbolMetaMap = new Map();
 
-        // MCX Tickers
-        const mcxTickers = filtered.map(item => {
-            const fullSymbol = `${item.symTicker}`;
-            symbolMetaMap.set(fullSymbol, {
-                exSymName: item.exSymName,
-                symbolDesc: item.symbolDesc,
-            });
-            return fullSymbol;
-        });
+        // MCX Tickers
+        const mcxTickers = filtered.map(item => {
+            const fullSymbol = `${item.symTicker}`;
+            symbolMetaMap.set(fullSymbol, {
+                exSymName: item.exSymName,
+                symbolDesc: item.symbolDesc,
+            });
+            return fullSymbol;
+        });
 
-        // NSE Futures Tickers
-        const nseTickers = nseFutures.map(item => {
-            symbolMetaMap.set(item.fyersSymbol, {
-                exSymName: item.symbol,
-                symbolDesc: item.name,
-            });
-            return item.fyersSymbol;
-        });
-        
-        // NSE Options Tickers
-        const nseOptionsTickers = await getNseOptions();
+        // NSE Futures Tickers
+        const nseTickers = nseFutures.map(item => {
+            symbolMetaMap.set(item.fyersSymbol, {
+                exSymName: item.symbol,
+                symbolDesc: item.name,
+            });
+            return item.fyersSymbol;
+        });
+        
+        // NSE Options Tickers
+        const nseOptionsTickers = await getNseOptions();
 
-        // Combine all
-        const tickers = [...mcxTickers, ...nseTickers, ...nseOptionsTickers];
+        // Combine all
+        const tickers = [...mcxTickers, ...nseTickers, ...nseOptionsTickers];
 
-        console.log("🔗 Subscribing to symbols:", tickers);
+        console.log("🔗 Subscribing to symbols:", tickers);
 
-        // STEP 3: Connect WebSocket
-        const fyersSocket = new fyersDataSocket(TOKEN, "", false);
-        fyersSocket.autoreconnect(6);
+        // STEP 3: Connect WebSocket
+        const fyersSocket = new fyersDataSocket(TOKEN, "", false);
+        fyersSocket.autoreconnect(6);
 
-        fyersSocket.on("connect", () => {
-            console.log("✅ Fyers WebSocket connected");
-            fyersSocket.subscribe(tickers);
-        });
+        fyersSocket.on("connect", () => {
+            console.log("✅ Fyers WebSocket connected");
+            fyersSocket.subscribe(tickers);
+        });
 
-        fyersSocket.on("message", async (quote) => {
-            console.log("📩 Live Data:", quote);
-            const symbol = quote.symbol;
-            const data = quote;
-            const meta = symbolMetaMap.get(symbol) || {};
+        fyersSocket.on("message", async (quote) => {
+            console.log("📩 Live Data:", quote);
+            const symbol = quote.symbol;
+            const data = quote;
+            const meta = symbolMetaMap.get(symbol) || {};
 
-            try {
-                await stockLiveModels.findOneAndUpdate(
-                    { symbol },
-                    {
-                        symbol,
-                        data,
-                        exSymName: meta.exSymName || "",
-                        symbolDesc: meta.symbolDesc || "",
-                        lastUpdated: new Date(),
-                    },
-                    { upsert: true, new: true }
-                );
-                console.log("📦 Updated in DB:", symbol);
-            } catch (err) {
-                console.log("❌ DB update error:", symbol, err.message);
-            }
-        });
+            try {
+                await stockLiveModels.findOneAndUpdate(
+                    { symbol },
+                    {
+                        symbol,
+                        data,
+                        exSymName: meta.exSymName || "",
+                        symbolDesc: meta.symbolDesc || "",
+                        lastUpdated: new Date(),
+                    },
+                    { upsert: true, new: true }
+                );
+                console.log("📦 Updated in DB:", symbol);
+            } catch (err) {
+                console.log("❌ DB update error:", symbol, err.message);
+            }
+        });
 
-        fyersSocket.on("error", (err) => {
-            console.log("❌ WebSocket error:", err.message || err);
-        });
+        fyersSocket.on("error", (err) => {
+            console.log("❌ WebSocket error:", err.message || err);
+        });
 
-        fyersSocket.on("close", () => {
-            console.log("🔌 Fyers WebSocket closed");
-        });
+        fyersSocket.on("close", () => {
+            console.log("🔌 Fyers WebSocket closed");
+        });
 
-        fyersSocket.connect();
-    } catch (err) {
-        console.error("🛑 Error in startFyersSocket:", err.message || err);
-    }
+        fyersSocket.connect();
+    } catch (err) {
+        console.error("🛑 Error in startFyersSocket:", err.message || err);
+    }
 }
