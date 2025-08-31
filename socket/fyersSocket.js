@@ -170,6 +170,7 @@ const nseFuturesBase = [
   { symbol: "TATASTEEL", name: "Tata Steel Limited" },
   { symbol: "RELIANCE", name: "Reliance Industries Limited" },
   { symbol: "ITC", name: "ITC Limited" },
+  { symbol: "PNB", name: "ITC Limited" },
   { symbol: "INFY", name: "Infosys Limited" },
   { symbol: "TCS", name: "Tata Consultancy Services Limited" },
   { symbol: "ICICIBANK", name: "ICICI Bank Limited" },
