@@ -153,6 +153,7 @@ const { fyersDataSocket } = pkg;
 const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb3RJX2UzZkV2dWVUR0hKc1hhSmw3cmxsaUtjVFB4djVSM0EydUlPZWZmYzlhNkZaWHBLQWFvdDZUNXdOMDFrd3pGZlB5dEZPV1VlS2toaTJ2bGJQMnR6MGVwUmxZU2Y3R29RX3dsZk5BcEZUU1Vqbz0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiI5YjMwYWZhNDg0MWE3NWNkZjI1ZDlhMWNhNjVlMWE0NTEzNWY1YWY5OTdkOTVjYjU0NGYwZGExZCIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU2Njg2NjAwLCJpYXQiOjE3NTY2NjM3NzQsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1NjY2Mzc3NCwic3ViIjoiYWNjZXNzX3Rva2VuIn0.waleDsyk2cq6-i9XFvpHwr9MhV2Oxpk1elm9mnRIo2E";
 
 
+
 const requiredSymbols = [
   'SILVERM', 'SILVERMIC', 'SILVER',
   'CRUDEOILM', 'ZINC', 'LEAD',
@@ -166,26 +167,26 @@ const nseFuturesBase = [
   { symbol: "FINNIFTY", name: "Nifty Financial Services Index" },
   { symbol: "MIDCPNIFTY", name: "Nifty Midcap Select Index" },
 
-  { symbol: "TATAMOTORS", name: "Tata Motors Limited" },
-  { symbol: "TATASTEEL", name: "Tata Steel Limited" },
-  { symbol: "RELIANCE", name: "Reliance Industries Limited" },
-  { symbol: "ITC", name: "ITC Limited" },
-  { symbol: "INFY", name: "Infosys Limited" },
-  { symbol: "TCS", name: "Tata Consultancy Services Limited" },
-  { symbol: "ICICIBANK", name: "ICICI Bank Limited" },
-  { symbol: "HDFCBANK", name: "HDFC Bank Limited" },
-  { symbol: "SBIN", name: "State Bank of India" },
-  { symbol: "BANKBARODA", name: "Bank of Baroda" },
-  { symbol: "ADANIPORTS", name: "Adani Ports and Special Economic Zone Limited" },
-  { symbol: "ADANIENT", name: "Adani Enterprises Limited" },
-  { symbol: "AMBUJACEM", name: "Ambuja Cements Limited" },
-  { symbol: "AXISBANK", name: "Axis Bank Limited" },
-  { symbol: "BAJFINANCE", name: "Bajaj Finance Limited" },
-  { symbol: "BPCL", name: "Bharat Petroleum Corporation Limited" },
-  { symbol: "BHARTIARTL", name: "Bharti Airtel Limited" },
-  { symbol: "INDUSINDBK", name: "IndusInd Bank Limited" },
-  { symbol: "LICI", name: "Life Insurance Corporation of India" },
-  { symbol: "SUNPHARMA", name: "Sun Pharmaceutical Industries Limited" }
+  { symbol: "TATAMOTORS.NS", name: "Tata Motors Limited" },
+  { symbol: "TATASTEEL.NS", name: "Tata Steel Limited" },
+  { symbol: "RELIANCE.NS", name: "Reliance Industries Limited" },
+  { symbol: "ITC.NS", name: "ITC Limited" },
+  { symbol: "INFY.NS", name: "Infosys Limited" },
+  { symbol: "TCS.NS", name: "Tata Consultancy Services Limited" },
+  { symbol: "ICICIBANK.NS", name: "ICICI Bank Limited" },
+  { symbol: "HDFCBANK.NS", name: "HDFC Bank Limited" },
+  { symbol: "SBIN.NS", name: "State Bank of India" },
+  { symbol: "BANKBARODA.NS", name: "Bank of Baroda" },
+  { symbol: "ADANIPORTS.NS", name: "Adani Ports and Special Economic Zone Limited" },
+  { symbol: "ADANIENT.NS", name: "Adani Enterprises Limited" },
+  { symbol: "AMBUJACEM.NS", name: "Ambuja Cements Limited" },
+  { symbol: "AXISBANK.NS", name: "Axis Bank Limited" },
+  { symbol: "BAJFINANCE.NS", name: "Bajaj Finance Limited" },
+  { symbol: "BPCL.NS", name: "Bharat Petroleum Corporation Limited" },
+  { symbol: "BHARTIARTL.NS", name: "Bharti Airtel Limited" },
+  { symbol: "INDUSINDBK.NS", name: "IndusInd Bank Limited" },
+  { symbol: "LICI.NS", name: "Life Insurance Corporation of India" },
+  { symbol: "SUNPHARMA.NS", name: "Sun Pharmaceutical Industries Limited" }
 ];
 
 // ---------------- Expiry Calculations ----------------
