@@ -150,7 +150,7 @@ import stockLiveModels from "../models/stockLive.models.js";
 
 const { fyersDataSocket } = pkg;
 
-const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCb29zMmN1N2pEc04zY3VCb1N5MmdGdHl2Yy05SnNydXV0eFdRTFZSWG9kTDNBUUVSVFBkSjhOMm90dlNxRlNCVnEtY0hmS3hhTk85YnFEaThyc3kwN0VEdUY0LVBZUFlQLVNvd09fZ0dzSkpvQVJjaz0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiI5YjMwYWZhNDg0MWE3NWNkZjI1ZDlhMWNhNjVlMWE0NTEzNWY1YWY5OTdkOTVjYjU0NGYwZGExZCIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU1NTYzNDAwLCJpYXQiOjE3NTU0OTk5MzIsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1NTQ5OTkzMiwic3ViIjoiYWNjZXNzX3Rva2VuIn0.m3pLUVjqx2qRnuWjY4sSxN5trruaAmCyVbLyZS4aF6s";
+const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCbzBrSkdLbERPWFdBOFBDMFA4QUoyNzh3ZGJoTHE2ZmJaSlhjdzRzcDVFQUVRbUY5YS1tZnJ1R1NJRFhHTS0zRVFMYl90aU1Ha2VJUkgzYnpPbHRZMUxVVU1UVHpaaG11aWZNUFBZTTRpMWFyaENlbz0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiJkOGU4OWZjNjA1ODkzYTNiZTUwYWFlMGM0OGU2MmZkZjRhNGU5NThmZWJjZjJlYTAzYzYyNzJjMyIsImlzRGRwaUVuYWJsZWQiOiJZIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU4NjczODAwLCJpYXQiOjE3NTg2MDk5OTAsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1ODYwOTk5MCwic3ViIjoiYWNjZXNzX3Rva2VuIn0.nPR1YNQ3C8i9WyHCRuHieXY9yMwiZCiRwkIVjbUtZ8o";
 
 
 const requiredSymbols = [
@@ -282,8 +282,57 @@ export async function startFyersSocket() {
       return item.fyersSymbol;
     });
 
+     async function getBankNiftyOptions(atmStrike = 51500, range = 500) {
+      try {
+        const resFO = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+        const bufferFO = await resFO.arrayBuffer();
+        const decompressedFO = new TextDecoder("utf-8").decode(bufferFO);
+        const foJson = JSON.parse(decompressedFO);
+
+        const all = Object.values(foJson);
+        // console.log("Total FO symbols fetched:", all.length);
+        // console.log("Sample record:", all[0]);
+
+        // ✅ FIXED FILTER
+        const bankniftyOptions = all.filter(
+          o => o.underSym === "BANKNIFTY" && o.exInstType === 14
+        );
+
+        // console.log("BANKNIFTY Options fetched:", bankniftyOptions.length);
+        // console.log("Sample BANKNIFTY Option:", bankniftyOptions[0]);
+
+        if (!bankniftyOptions.length) return [];
+
+        // Nearest expiry (epoch seconds)
+        const now = Math.floor(Date.now() / 1000);
+        const nearestExpiry = [...new Set(bankniftyOptions.map(o => Number(o.expiryDate)))]
+          .filter(exp => exp >= now)
+          .sort((a, b) => a - b)[0];
+
+        // console.log("Nearest expiry:", nearestExpiry);
+
+        const currentExpiry = bankniftyOptions.filter(
+          o => Number(o.expiryDate) === nearestExpiry
+        );
+
+        const strikes = currentExpiry.filter(
+          o => Math.abs(o.strikePrice - atmStrike) <= range
+        );
+
+        return strikes.map(o => o.symTicker);
+      } catch (err) {
+        console.error("❌ Error fetching BANKNIFTY options:", err.message || err);
+        return [];
+      }
+    }
+
+
+
+    const bankNiftySymbols = await getBankNiftyOptions(51500, 500);
+
+    console.log("BANKNIFTY Options subscribed:", bankNiftySymbols);
     // Combine both
-    const tickers = [...mcxTickers, ...nseTickers];
+    const tickers = [...mcxTickers, ...nseTickers,...bankNiftySymbols];
 
     console.log("🔗 Subscribing to symbols:", tickers);
 

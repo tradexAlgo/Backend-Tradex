@@ -400,6 +400,65 @@ const getMarketDepth = async (req, res) => {
   }
 };
 
+
+const getBankNiftyOptions = async (req, res) => {
+  try {
+    // Optional query params for flexibility
+    const atm = Number(req.query.atm || 51500);
+    const range = Number(req.query.range || 500);
+
+    // Download the large Fyers master file
+    const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+    const buffer = await resp.arrayBuffer();
+    const text = new TextDecoder("utf-8").decode(buffer);
+    const json = JSON.parse(text);
+
+    const all = Object.values(json);
+
+    // ✅ Filter BANKNIFTY option contracts
+    const bankniftyOptions = all.filter(
+      (o) => o?.underSym === "BANKNIFTY" && o?.exInstType === 14
+    );
+    if (!bankniftyOptions.length) {
+      return send200(res, {
+        status: true,
+        message: "No BANKNIFTY options found",
+        data: [],
+      });
+    }
+
+    // Find nearest expiry >= current time
+    const now = Math.floor(Date.now() / 1000);
+    const nearestExpiry = [...new Set(bankniftyOptions.map(o => Number(o.expiryDate)))]
+      .filter(exp => exp >= now)
+      .sort((a, b) => a - b)[0];
+
+    const currentExpiry = bankniftyOptions.filter(
+      o => Number(o.expiryDate) === nearestExpiry
+    );
+
+    // Filter around ATM strike
+    const strikes = currentExpiry.filter(
+      o => Math.abs(o.strikePrice - atm) <= range
+    );
+
+    const symbols = strikes.map(o => o.symTicker);
+
+    return send200(res, {
+      status: true,
+      message: "BANKNIFTY option symbols fetched successfully",
+      data: symbols,
+    });
+  } catch (error) {
+    console.error("❌ getBankNiftyOptions error:", error.message || error);
+    return send500(res, {
+      status: false,
+      message: "Failed to fetch BANKNIFTY option symbols",
+      details: error.message || error,
+    });
+  }
+};
+
 export default {
   generateAuthCode,
   generateAccessToken,
@@ -407,5 +466,6 @@ export default {
   getQuotes,
   getMarketDepth,
   checkApiLimit,
-  getQuotesV2
+  getQuotesV2,
+  getBankNiftyOptions
 };

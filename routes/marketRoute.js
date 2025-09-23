@@ -36,7 +36,8 @@ const {
   generateAccessToken,
   getQuotes,
   getQuotesV2,
-  checkApiLimit
+  checkApiLimit,
+   getBankNiftyOptions
 } = fyersController;
 
 
@@ -68,6 +69,7 @@ router.get("/generateAccessToken", generateAccessToken);
 router.get("/checkApiLimit", checkApiLimit);
 router.post("/getQuotes", getQuotes);
 router.post("/getQuotesV2", getQuotesV2);
+router.get("/banknifty-options", getBankNiftyOptions);
 router.get("/chain", chain);
 
 router.delete("/removewatchlistitem/:symbol", verifyToken, removeWatchListItem);
