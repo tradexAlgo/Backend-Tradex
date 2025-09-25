@@ -401,63 +401,119 @@ const getMarketDepth = async (req, res) => {
 };
 
 
+// const getBankNiftyOptions = async (req, res) => {
+//   try {
+//     // Optional query params for flexibility
+//     const atm = Number(req.query.atm || 51500);
+//     const range = Number(req.query.range || 500);
+
+//     // Download the large Fyers master file
+//     const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+//     const buffer = await resp.arrayBuffer();
+//     const text = new TextDecoder("utf-8").decode(buffer);
+//     const json = JSON.parse(text);
+
+//     const all = Object.values(json);
+
+//     // ✅ Filter BANKNIFTY option contracts
+//     const bankniftyOptions = all.filter(
+//       (o) => o?.underSym === "BANKNIFTY" && o?.exInstType === 14
+//     );
+//     if (!bankniftyOptions.length) {
+//       return send200(res, {
+//         status: true,
+//         message: "No BANKNIFTY options found",
+//         data: [],
+//       });
+//     }
+
+//     // Find nearest expiry >= current time
+//     const now = Math.floor(Date.now() / 1000);
+//     const nearestExpiry = [...new Set(bankniftyOptions.map(o => Number(o.expiryDate)))]
+//       .filter(exp => exp >= now)
+//       .sort((a, b) => a - b)[0];
+
+//     const currentExpiry = bankniftyOptions.filter(
+//       o => Number(o.expiryDate) === nearestExpiry
+//     );
+
+//     // Filter around ATM strike
+//     const strikes = currentExpiry.filter(
+//       o => Math.abs(o.strikePrice - atm) <= range
+//     );
+
+//     const symbols = strikes.map(o => o.symTicker);
+
+//     return send200(res, {
+//       status: true,
+//       message: "BANKNIFTY option symbols fetched successfully",
+//       data: symbols,
+//     });
+//   } catch (error) {
+//     console.error("❌ getBankNiftyOptions error:", error.message || error);
+//     return send500(res, {
+//       status: false,
+//       message: "Failed to fetch BANKNIFTY option symbols",
+//       details: error.message || error,
+//     });
+//   }
+// };
+
 const getBankNiftyOptions = async (req, res) => {
   try {
-    // Optional query params for flexibility
-    const atm = Number(req.query.atm || 51500);
-    const range = Number(req.query.range || 500);
+    // Optional query params
+    const atmBN = Number(req.query.atmBN || 51500); // BANKNIFTY ATM
+    const rangeBN = Number(req.query.rangeBN || 500); // BANKNIFTY range
+    const atmN = Number(req.query.atmN || 27000); // NIFTY ATM, adjust as needed
+    const rangeN = Number(req.query.rangeN || 2000); // NIFTY range to match your screenshots
 
-    // Download the large Fyers master file
+    // Fetch Fyers master file
     const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
     const buffer = await resp.arrayBuffer();
     const text = new TextDecoder("utf-8").decode(buffer);
     const json = JSON.parse(text);
-
     const all = Object.values(json);
 
-    // ✅ Filter BANKNIFTY option contracts
-    const bankniftyOptions = all.filter(
-      (o) => o?.underSym === "BANKNIFTY" && o?.exInstType === 14
-    );
-    if (!bankniftyOptions.length) {
-      return send200(res, {
-        status: true,
-        message: "No BANKNIFTY options found",
-        data: [],
-      });
-    }
+    const fetchSymbols = (underlying, atm, range) => {
+      const options = all.filter(o => o?.underSym === underlying && o?.exInstType === 14);
+      if (!options.length) return [];
 
-    // Find nearest expiry >= current time
-    const now = Math.floor(Date.now() / 1000);
-    const nearestExpiry = [...new Set(bankniftyOptions.map(o => Number(o.expiryDate)))]
-      .filter(exp => exp >= now)
-      .sort((a, b) => a - b)[0];
+      const now = Math.floor(Date.now() / 1000);
+      const nearestExpiry = [...new Set(options.map(o => Number(o.expiryDate)))]
+        .filter(exp => exp >= now)
+        .sort((a, b) => a - b)[0];
 
-    const currentExpiry = bankniftyOptions.filter(
-      o => Number(o.expiryDate) === nearestExpiry
-    );
+      const currentExpiry = options.filter(o => Number(o.expiryDate) === nearestExpiry);
+      const strikes = currentExpiry.filter(o => Math.abs(o.strikePrice - atm) <= range);
 
-    // Filter around ATM strike
-    const strikes = currentExpiry.filter(
-      o => Math.abs(o.strikePrice - atm) <= range
-    );
+      return strikes.map(o => o.symTicker);
+    };
 
-    const symbols = strikes.map(o => o.symTicker);
+    // Fetch BANKNIFTY and NIFTY with separate ranges
+    const bankNiftySymbols = fetchSymbols("BANKNIFTY", atmBN, rangeBN);
+    const niftySymbols = fetchSymbols("NIFTY", atmN, rangeN);
+
+    // Combine into single array
+    const combinedSymbols = [...bankNiftySymbols, ...niftySymbols];
 
     return send200(res, {
       status: true,
-      message: "BANKNIFTY option symbols fetched successfully",
-      data: symbols,
+      message: "Option symbols fetched successfully",
+      data: combinedSymbols,
     });
+
   } catch (error) {
     console.error("❌ getBankNiftyOptions error:", error.message || error);
     return send500(res, {
       status: false,
-      message: "Failed to fetch BANKNIFTY option symbols",
+      message: "Failed to fetch option symbols",
       details: error.message || error,
     });
   }
 };
+
+
+
 
 export default {
   generateAuthCode,

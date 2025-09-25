@@ -150,7 +150,7 @@ import stockLiveModels from "../models/stockLive.models.js";
 
 const { fyersDataSocket } = pkg;
 
-const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCbzA3V3dpUmQxQjlxOGN4TkRTRmtEYm1yTktTWjl5cllPOGdjQlk2NHBNS2xMQjd5R1M5S2VpUXE1V2IwTFBScXI0eU5HRVlQMkF6QXdKLXFhUFh0RnM5Z3Q0V05ENXlYRklYT1NaSkNxbld0MV9xST0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiJkOWM4YTQ5ZjMyYjVjMzIwMjcyOTZhYWUxNDFhZjg0YzliMTFkZDNlMTc3ODQwNDcxN2JmZDE0NCIsImlzRGRwaUVuYWJsZWQiOiJZIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU4NzYwMjAwLCJpYXQiOjE3NTg3MDUwNzIsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1ODcwNTA3Miwic3ViIjoiYWNjZXNzX3Rva2VuIn0.gi_RiGjNPF1HXOqjppK-pzVFvwnqZw_G-zvmRzqAgGI";
+const TOKEN = "OQPJKMQBRZ-100:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCbzFPbjNaeXh6a3FpVEN5ZHpqaURFU3NGeVoxNnhYUUIwMVhqSGwzZkY2Qm5YMW1XT1pYcElkR3dCSlNfbmFvRTExOWJiQ0Q3akZGVmh5ampVNFM0TVBsYVhGOENqY3J0YVBBbm5RUHhnQXVGUEpvOD0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiJlZjUzZjhhYjRhNjBkMTAzZjc1MjQwYTNhOGQyMzk1NDc5MWJlMzA3ZGNlMTk2Yjk1MmJkM2M3ZCIsImlzRGRwaUVuYWJsZWQiOiJZIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWU8wMDY0NSIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzU4ODQ2NjAwLCJpYXQiOjE3NTg3ODM5OTEsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc1ODc4Mzk5MSwic3ViIjoiYWNjZXNzX3Rva2VuIn0.dNBpnedVuhV0ABQu0j6oRgLSAOwp3AbTpZUw2jZfw_8";
 
 
 const requiredSymbols = [
@@ -216,12 +216,12 @@ function convertToFyersFutureSymbol(symbol, expiry) {
   const year = new Date().getFullYear().toString().slice(-2); // '25'
   const [day, mon] = expiry.split(" "); // e.g., "28 Aug"
   const monthCode = mon.toUpperCase();
-  
+
   // Indexes (NIFTY, BANKNIFTY, etc.) don't have .NS
   if (!symbol.endsWith(".NS")) {
     return `NSE:${symbol}${year}${monthCode}FUT`;
   }
-  
+
   // Stocks — remove ".NS"
   const base = symbol.replace(".NS", "");
   return `NSE:${base}${year}${monthCode}FUT`;
@@ -282,7 +282,7 @@ export async function startFyersSocket() {
       return item.fyersSymbol;
     });
 
-     async function getBankNiftyOptions(atmStrike = 51500, range = 500) {
+    async function getBankNiftyOptions(atmStrike = 51500, range = 500) {
       try {
         const resFO = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
         const bufferFO = await resFO.arrayBuffer();
@@ -327,12 +327,52 @@ export async function startFyersSocket() {
     }
 
 
+    async function getFNOOptions(underlying = "BANKNIFTY", atmStrike = 51500, range = 500) {
+      try {
+        const resFO = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+        const bufferFO = await resFO.arrayBuffer();
+        const decompressedFO = new TextDecoder("utf-8").decode(bufferFO);
+        const foJson = JSON.parse(decompressedFO);
+
+        const allSymbols = Object.values(foJson);
+
+        // Filter for the given underlying and Options (exInstType === 14)
+        const options = allSymbols.filter(
+          o => o.underSym === underlying && o.exInstType === 14
+        );
+
+        if (!options.length) return [];
+
+        // Nearest expiry (epoch seconds)
+        const now = Math.floor(Date.now() / 1000);
+        const nearestExpiry = [...new Set(options.map(o => Number(o.expiryDate)))]
+          .filter(exp => exp >= now)
+          .sort((a, b) => a - b)[0];
+
+        const currentExpiry = options.filter(
+          o => Number(o.expiryDate) === nearestExpiry
+        );
+
+        const strikes = currentExpiry.filter(
+          o => Math.abs(o.strikePrice - atmStrike) <= range
+        );
+
+        return strikes.map(o => o.symTicker);
+      } catch (err) {
+        console.error(`❌ Error fetching ${underlying} options:`, err.message || err);
+        return [];
+      }
+    }
+
+    const niftySymbols = await getFNOOptions("NIFTY", 27000, 2000);
+
+console.log("niftySymbols",niftySymbols)
 
     const bankNiftySymbols = await getBankNiftyOptions(51500, 500);
 
     console.log("BANKNIFTY Options subscribed:", bankNiftySymbols);
     // Combine both
-    const tickers = [...mcxTickers, ...nseTickers,...bankNiftySymbols];
+    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols,...niftySymbols];
 
     console.log("🔗 Subscribing to symbols:", tickers);
 

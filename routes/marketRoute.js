@@ -28,7 +28,7 @@ const {
   getSymbolsInWatchlist,
   getAllSymbolsByUser,
   exportStocksToExcel,
-  getOptionChain
+  getOptionChain,
 } = marketController;
 const {
   generateAuthCode,
