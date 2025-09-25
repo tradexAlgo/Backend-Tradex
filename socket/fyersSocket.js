@@ -366,13 +366,20 @@ export async function startFyersSocket() {
 
     const niftySymbols = await getFNOOptions("NIFTY", 27000, 2000);
 
-console.log("niftySymbols",niftySymbols)
 
     const bankNiftySymbols = await getBankNiftyOptions(51500, 500);
 
+    //  const atmFN = Number(req.query.atmFN || 19500);    // FINNIFTY ATM
+    // const rangeFN = Number(req.query.rangeFN || 500);  // FINNIFTY range
+    // const atmSX = Number(req.query.atmSX || 61000);    // SENSEX ATM
+    // const rangeSX = Number(req.query.rangeSX || 1500); // SENSEX range
+
+    const finniftySymbols = getFNOOptions("FINNIFTY", 19500, 500);
+    const sensexSymbols = getFNOOptions("SENSEX", 61000, 1500);
+
     console.log("BANKNIFTY Options subscribed:", bankNiftySymbols);
     // Combine both
-    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols,...niftySymbols];
+    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols, ...niftySymbols,...finniftySymbols,...sensexSymbols];
 
     console.log("🔗 Subscribing to symbols:", tickers);
 

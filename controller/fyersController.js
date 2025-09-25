@@ -459,13 +459,71 @@ const getMarketDepth = async (req, res) => {
 //   }
 // };
 
+// const getBankNiftyOptions = async (req, res) => {
+//   try {
+//     // Optional query params
+//     const atmBN = Number(req.query.atmBN || 51500); // BANKNIFTY ATM
+//     const rangeBN = Number(req.query.rangeBN || 500); // BANKNIFTY range
+//     const atmN = Number(req.query.atmN || 27000); // NIFTY ATM, adjust as needed
+//     const rangeN = Number(req.query.rangeN || 2000); // NIFTY range to match your screenshots
+
+//     // Fetch Fyers master file
+//     const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+//     const buffer = await resp.arrayBuffer();
+//     const text = new TextDecoder("utf-8").decode(buffer);
+//     const json = JSON.parse(text);
+//     const all = Object.values(json);
+
+//     const fetchSymbols = (underlying, atm, range) => {
+//       const options = all.filter(o => o?.underSym === underlying && o?.exInstType === 14);
+//       if (!options.length) return [];
+
+//       const now = Math.floor(Date.now() / 1000);
+//       const nearestExpiry = [...new Set(options.map(o => Number(o.expiryDate)))]
+//         .filter(exp => exp >= now)
+//         .sort((a, b) => a - b)[0];
+
+//       const currentExpiry = options.filter(o => Number(o.expiryDate) === nearestExpiry);
+//       const strikes = currentExpiry.filter(o => Math.abs(o.strikePrice - atm) <= range);
+
+//       return strikes.map(o => o.symTicker);
+//     };
+
+//     // Fetch BANKNIFTY and NIFTY with separate ranges
+//     const bankNiftySymbols = fetchSymbols("BANKNIFTY", atmBN, rangeBN);
+//     const niftySymbols = fetchSymbols("NIFTY", atmN, rangeN);
+
+//     // Combine into single array
+//     const combinedSymbols = [...bankNiftySymbols, ...niftySymbols];
+
+//     return send200(res, {
+//       status: true,
+//       message: "Option symbols fetched successfully",
+//       data: combinedSymbols,
+//     });
+
+//   } catch (error) {
+//     console.error("❌ getBankNiftyOptions error:", error.message || error);
+//     return send500(res, {
+//       status: false,
+//       message: "Failed to fetch option symbols",
+//       details: error.message || error,
+//     });
+//   }
+// };
+
+
 const getBankNiftyOptions = async (req, res) => {
   try {
     // Optional query params
-    const atmBN = Number(req.query.atmBN || 51500); // BANKNIFTY ATM
-    const rangeBN = Number(req.query.rangeBN || 500); // BANKNIFTY range
-    const atmN = Number(req.query.atmN || 27000); // NIFTY ATM, adjust as needed
-    const rangeN = Number(req.query.rangeN || 2000); // NIFTY range to match your screenshots
+    const atmBN = Number(req.query.atmBN || 51500);     // BANKNIFTY ATM
+    const rangeBN = Number(req.query.rangeBN || 500);  // BANKNIFTY range
+    const atmN = Number(req.query.atmN || 27000);      // NIFTY ATM
+    const rangeN = Number(req.query.rangeN || 2000);   // NIFTY range
+    const atmFN = Number(req.query.atmFN || 19500);    // FINNIFTY ATM
+    const rangeFN = Number(req.query.rangeFN || 500);  // FINNIFTY range
+    const atmSX = Number(req.query.atmSX || 61000);    // SENSEX ATM
+    const rangeSX = Number(req.query.rangeSX || 1500); // SENSEX range
 
     // Fetch Fyers master file
     const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
@@ -489,12 +547,19 @@ const getBankNiftyOptions = async (req, res) => {
       return strikes.map(o => o.symTicker);
     };
 
-    // Fetch BANKNIFTY and NIFTY with separate ranges
+    // Fetch symbols for all indices
     const bankNiftySymbols = fetchSymbols("BANKNIFTY", atmBN, rangeBN);
     const niftySymbols = fetchSymbols("NIFTY", atmN, rangeN);
+    const finniftySymbols = fetchSymbols("FINNIFTY", atmFN, rangeFN);
+    const sensexSymbols = fetchSymbols("SENSEX", atmSX, rangeSX);
 
-    // Combine into single array
-    const combinedSymbols = [...bankNiftySymbols, ...niftySymbols];
+    // Combine all symbols into a single array
+    const combinedSymbols = [
+      ...bankNiftySymbols,
+      ...niftySymbols,
+      ...finniftySymbols,
+      ...sensexSymbols
+    ];
 
     return send200(res, {
       status: true,
