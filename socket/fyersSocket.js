@@ -374,12 +374,12 @@ export async function startFyersSocket() {
     // const atmSX = Number(req.query.atmSX || 61000);    // SENSEX ATM
     // const rangeSX = Number(req.query.rangeSX || 1500); // SENSEX range
 
-    const finniftySymbols = getFNOOptions("FINNIFTY", 19500, 500);
-    const sensexSymbols = getFNOOptions("SENSEX", 61000, 1500);
+    // const finniftySymbols = getFNOOptions("FINNIFTY", 19500, 500);
+    // const sensexSymbols = getFNOOptions("SENSEX", 61000, 1500);
 
     console.log("BANKNIFTY Options subscribed:", bankNiftySymbols);
     // Combine both
-    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols, ...niftySymbols,...finniftySymbols,...sensexSymbols];
+    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols, ...niftySymbols];
 
     console.log("🔗 Subscribing to symbols:", tickers);
 
