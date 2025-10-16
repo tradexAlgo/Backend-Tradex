@@ -86,7 +86,7 @@ const deleteWatchlist = async (req, res) => {
 
 const getUserWatchlists = async (req, res) => {
   const userId = req.user._id;
-
+console.log("caling wathclist",req.user)
   try {
     // Get all non-empty watchlists for the user
     const lists = await watchList.find({
@@ -110,7 +110,9 @@ const getUserWatchlists = async (req, res) => {
       message: "User watchlists fetched successfully",
       data: watchlistsWithCount,
     });
+    
   } catch (err) {
+    console.log("error",err)
     return send500(res, {
       status: false,
       message: err.message || "Failed to fetch watchlists",

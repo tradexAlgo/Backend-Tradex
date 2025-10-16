@@ -374,12 +374,13 @@ export async function startFyersSocket() {
     // const atmSX = Number(req.query.atmSX || 61000);    // SENSEX ATM
     // const rangeSX = Number(req.query.rangeSX || 1500); // SENSEX range
 
-    // const finniftySymbols = getFNOOptions("FINNIFTY", 19500, 500);
+    const finniftySymbols = await getFNOOptions("FINNIFTY", 19500, 500);
     // const sensexSymbols = getFNOOptions("SENSEX", 61000, 1500);
 
     console.log("BANKNIFTY Options subscribed:", bankNiftySymbols);
     // Combine both
-    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols, ...niftySymbols];
+    // const tickers = [...mcxTickers];
+    const tickers = [...mcxTickers, ...nseTickers, ...bankNiftySymbols, ...niftySymbols,...finniftySymbols];
 
     console.log("🔗 Subscribing to symbols:", tickers);
 
@@ -393,7 +394,7 @@ export async function startFyersSocket() {
     });
 
     fyersSocket.on("message", async (quote) => {
-      console.log("📩 Live Data:", quote);
+      // console.log("📩 Live Data:", quote);
       const symbol = quote.symbol;
       const data = quote;
       const meta = symbolMetaMap.get(symbol) || {};
@@ -410,7 +411,7 @@ export async function startFyersSocket() {
           },
           { upsert: true, new: true }
         );
-        console.log("📦 Updated in DB:", symbol);
+        // console.log("📦 Updated in DB:", symbol);
       } catch (err) {
         console.error("❌ DB update error:", symbol, err.message);
       }
