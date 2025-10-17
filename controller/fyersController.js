@@ -513,10 +513,19 @@ const getMarketDepth = async (req, res) => {
 // };
 
 
+// Example: dynamically fetch ATM
+const fetchLiveIndexPrice = async (symbol) => {
+  const url = `https://public.fyers.in/sym_details/NSE_indices.json`; // Or Fyers API for live index
+  const resp = await fetch(url);
+  const data = await resp.json();
+  return Number(data[symbol]?.lastPrice || 0);
+};
+
+
 const getBankNiftyOptions = async (req, res) => {
   try {
     // Optional query params
-    const atmBN = Number(req.query.atmBN || 51500);     // BANKNIFTY ATM
+    const atmBN = Number(req.query.atmBN || 57000);     // BANKNIFTY ATM
     const rangeBN = Number(req.query.rangeBN || 500);  // BANKNIFTY range
     const atmN = Number(req.query.atmN || 27000);      // NIFTY ATM
     const rangeN = Number(req.query.rangeN || 2000);   // NIFTY range
@@ -577,6 +586,71 @@ const getBankNiftyOptions = async (req, res) => {
   }
 };
 
+// const getBankNiftyOptions = async (req, res) => {
+//   try {
+//     // Optional query params for manual override
+//     let rangeBN = Number(req.query.rangeBN || 500);
+//     let rangeN = Number(req.query.rangeN || 2000);
+//     let rangeFN = Number(req.query.rangeFN || 500);
+//     let rangeSX = Number(req.query.rangeSX || 1500);
+
+//     // Fetch live ATM for each index (use query if provided)
+//     const atmBN = Number(req.query.atmBN) || await fetchLiveIndexPrice("BANKNIFTY");
+//     const atmN = Number(req.query.atmN) || await fetchLiveIndexPrice("NIFTY_50");
+//     const atmFN = Number(req.query.atmFN) || await fetchLiveIndexPrice("FINNIFTY");
+//     const atmSX = Number(req.query.atmSX) || await fetchLiveIndexPrice("SENSEX");
+
+//     // Fetch Fyers master file
+//     const resp = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
+//     const buffer = await resp.arrayBuffer();
+//     const text = new TextDecoder("utf-8").decode(buffer);
+//     const json = JSON.parse(text);
+//     const all = Object.values(json);
+
+//     const fetchSymbols = (underlying, atm, range) => {
+//       const options = all.filter(o => o?.underSym === underlying && o?.exInstType === 14);
+//       if (!options.length) return [];
+
+//       const now = Math.floor(Date.now() / 1000);
+//       const nearestExpiry = [...new Set(options.map(o => Number(o.expiryDate)))]
+//         .filter(exp => exp >= now)
+//         .sort((a, b) => a - b)[0];
+
+//       const currentExpiry = options.filter(o => Number(o.expiryDate) === nearestExpiry);
+//       const strikes = currentExpiry.filter(o => Math.abs(o.strikePrice - atm) <= range);
+
+//       return strikes.map(o => o.symTicker);
+//     };
+
+//     // Fetch symbols for all indices dynamically
+//     const bankNiftySymbols = fetchSymbols("BANKNIFTY", atmBN, rangeBN);
+//     const niftySymbols = fetchSymbols("NIFTY", atmN, rangeN);
+//     const finniftySymbols = fetchSymbols("FINNIFTY", atmFN, rangeFN);
+//     const sensexSymbols = fetchSymbols("SENSEX", atmSX, rangeSX);
+
+//     // Combine all symbols into a single array
+//     const combinedSymbols = [
+//       ...bankNiftySymbols,
+//       ...niftySymbols,
+//       ...finniftySymbols,
+//       ...sensexSymbols
+//     ];
+
+//     return send200(res, {
+//       status: true,
+//       message: "Option symbols fetched successfully",
+//       data: combinedSymbols,
+//     });
+
+//   } catch (error) {
+//     console.error("❌ getBankNiftyOptions error:", error.message || error);
+//     return send500(res, {
+//       status: false,
+//       message: "Failed to fetch option symbols",
+//       details: error.message || error,
+//     });
+//   }
+// };
 
 
 

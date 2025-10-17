@@ -162,6 +162,7 @@ const requiredSymbols = [
 // ---------------- NSE Futures Base ----------------
 const nseFuturesBase = [
   { symbol: "NIFTY", name: "Nifty 50 Index" },
+  { symbol: "NIFTY_50", name: "Nifty 50" },
   { symbol: "BANKNIFTY", name: "Nifty Bank Index" },
   { symbol: "FINNIFTY", name: "Nifty Financial Services Index" },
   { symbol: "MIDCPNIFTY", name: "Nifty Midcap Select Index" },
@@ -233,6 +234,7 @@ const nseFutures = nseFuturesBase.map(item => ({
   expiry: upcomingExpiry
 }));
 
+// console.log("nseFuturesnseFutures",nseFutures)
 // ---------------- Main Function ----------------
 export async function startFyersSocket() {
   try {
@@ -282,7 +284,7 @@ export async function startFyersSocket() {
       return item.fyersSymbol;
     });
 
-    async function getBankNiftyOptions(atmStrike = 51500, range = 500) {
+    async function getBankNiftyOptions(atmStrike = 57000, range = 500) {
       try {
         const resFO = await fetch("https://public.fyers.in/sym_details/NSE_FO_sym_master.json");
         const bufferFO = await resFO.arrayBuffer();
@@ -367,7 +369,7 @@ export async function startFyersSocket() {
     const niftySymbols = await getFNOOptions("NIFTY", 27000, 2000);
 
 
-    const bankNiftySymbols = await getBankNiftyOptions(51500, 500);
+    const bankNiftySymbols = await getBankNiftyOptions(57000, 500);
 
     //  const atmFN = Number(req.query.atmFN || 19500);    // FINNIFTY ATM
     // const rangeFN = Number(req.query.rangeFN || 500);  // FINNIFTY range
